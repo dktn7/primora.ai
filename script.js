@@ -1,14 +1,14 @@
 // Booking link configuration
 const BOOKING_LINK = 'https://calendly.com/rayyanulhaq365/consulting-call';
 
-// Benefits data
+// Benefits data - updated to be specific to a discovery-call automation service
 const benefits = [
-    "Seamless integration with existing systems",
-    "Real-time data processing and analytics",
-    "Custom automation workflows",
-    "24/7 premium support",
-    "No coding required",
-    "Enterprise-grade security"
+    "Tailored to your exact workflow — no generic templates",
+    "Discovery-first: we map your needs before building",
+    "Integrates with your existing tools and systems",
+    "Live automations deployed in days, not months",
+    "UK-based support — secure and GDPR compliant",
+    "No technical knowledge required on your end"
 ];
 
 // Handle booking button clicks
@@ -19,7 +19,7 @@ function handleBooking() {
 // Create benefits cards
 function createBenefitsCards() {
     const benefitsGrid = document.getElementById('benefitsGrid');
-    const fragment = document.createDocumentFragment();  // Use document fragment for better performance
+    const fragment = document.createDocumentFragment();
 
     benefits.forEach(benefit => {
         const benefitCard = document.createElement('div');
@@ -40,14 +40,10 @@ function createBenefitsCards() {
         benefitCard.appendChild(starIcon);
         benefitCard.appendChild(text);
         
-        // Add the benefit card to the fragment
         fragment.appendChild(benefitCard);
-
-        // Add animation observer to each benefit card
         observeScroll(benefitCard);
     });
 
-    // Append all cards at once for performance
     benefitsGrid.appendChild(fragment);
 }
 
@@ -59,7 +55,7 @@ function observeScroll(element) {
                 entry.target.classList.add('visible');
             }
         });
-    }, { threshold: 0.2 }); // Trigger animation when 20% of the element is visible
+    }, { threshold: 0.2 });
 
     observer.observe(element);
 }
@@ -68,41 +64,40 @@ function observeScroll(element) {
 document.addEventListener('DOMContentLoaded', () => {
     createBenefitsCards();
 
-    // Typed.js animations for header
+    // Fix: Typed.js - typed2 starts only after typed1 completes (prevents race condition)
     const typed1 = new Typed(".auto-type-1", {
         strings: ['<span class="gold-text">Automate</span> Your <span class="blue-text">Workflow</span>.'],
         typeSpeed: 100,
-        loop: false, // Keep looping
-        showCursor: false
-    });
-
-    const typed2 = new Typed(".auto-type-2", {
-        strings: ['<span class="blue-text">Focus</span> on What <span class="gold-text">Matters</span>.'],
-        typeSpeed: 100,
-        backSpeed: 80, 
         loop: false,
         showCursor: false,
+        onComplete: () => {
+            new Typed(".auto-type-2", {
+                strings: ['<span class="blue-text">Focus</span> on What <span class="gold-text">Matters</span>.'],
+                typeSpeed: 100,
+                loop: false,
+                showCursor: true,
+            });
+        }
     });
-});
 
-// Add smooth scroll behavior
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
+    // Fix: smooth scroll moved inside DOMContentLoaded so elements exist
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
         });
     });
 });
 
-// Add hover effects
-const cards = document.querySelectorAll('.feature-card, .benefit-card');
-cards.forEach(card => {
+// Fix: hover only on feature-card — benefit-cards use CSS hover to avoid conflicting with slide-in animation
+const featureCards = document.querySelectorAll('.feature-card');
+featureCards.forEach(card => {
     card.addEventListener('mouseenter', function() {
         this.style.transform = 'translateY(-5px)';
         this.style.transition = 'transform 0.3s ease';
     });
-    
     card.addEventListener('mouseleave', function() {
         this.style.transform = 'translateY(0)';
     });
