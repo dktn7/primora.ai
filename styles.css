@@ -221,9 +221,22 @@ body {
     transform: translateY(-2px);
 }
 
-.icon {
-    color: var(--gold);
+/* Icon wrapper for benefit cards */
+.benefit-icon-wrap {
     flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(212,190,84,0.1);
+    border-radius: 0.375rem;
+    color: var(--gold);
+    padding: 6px;
+}
+
+.benefit-icon-wrap svg {
+    stroke: var(--gold);
 }
 
 .benefit-text {

@@ -1,14 +1,32 @@
 // Booking link configuration
 const BOOKING_LINK = 'https://calendly.com/rayyanulhaq365/consulting-call';
 
-// Benefits data — blend of original + improved discovery-call focused copy
+// Benefits data with paired Lucide SVG icons
 const benefits = [
-    "Seamless integration with your existing tools and systems",
-    "Custom automation workflows — built around your business",
-    "Discovery-first: we map your exact needs before building",
-    "Real-time data processing and analytics",
-    "No coding required on your end",
-    "Enterprise-grade security — UK-based and GDPR compliant"
+    {
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+        text: "Seamless integration with your existing tools and systems"
+    },
+    {
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>`,
+        text: "Custom automation workflows — built around your business"
+    },
+    {
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`,
+        text: "Discovery-first: we map your exact needs before building"
+    },
+    {
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+        text: "Real-time data processing and analytics"
+    },
+    {
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="4 2"/></svg>`,
+        text: "No coding required on your end"
+    },
+    {
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
+        text: "Enterprise-grade security — UK-based and GDPR compliant"
+    }
 ];
 
 // Handle booking button clicks
@@ -25,19 +43,15 @@ function createBenefitsCards() {
         const benefitCard = document.createElement('div');
         benefitCard.className = 'benefit-card';
 
-        const starIcon = document.createElement('div');
-        starIcon.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-        `;
-        starIcon.className = 'icon';
+        const iconWrap = document.createElement('div');
+        iconWrap.className = 'benefit-icon-wrap';
+        iconWrap.innerHTML = benefit.icon;
 
         const text = document.createElement('span');
         text.className = 'benefit-text';
-        text.textContent = benefit;
+        text.textContent = benefit.text;
 
-        benefitCard.appendChild(starIcon);
+        benefitCard.appendChild(iconWrap);
         benefitCard.appendChild(text);
 
         fragment.appendChild(benefitCard);
@@ -64,7 +78,7 @@ function observeScroll(element) {
 document.addEventListener('DOMContentLoaded', () => {
     createBenefitsCards();
 
-    // Fix: typed2 starts only after typed1 completes (prevents race condition)
+    // typed2 starts only after typed1 completes
     new Typed(".auto-type-1", {
         strings: ['<span class="gold-text">Automate</span> Your <span class="blue-text">Workflow</span>.'],
         typeSpeed: 100,
@@ -80,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Fix: smooth scroll inside DOMContentLoaded so elements are available
+    // Smooth scroll inside DOMContentLoaded
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -91,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Fix: hover only on feature-card — benefit-cards use CSS hover to avoid conflicting with slide-in animation
+// Hover only on feature-card to avoid conflicting with benefit-card slide-in animation
 document.querySelectorAll('.feature-card').forEach(card => {
     card.addEventListener('mouseenter', function () {
         this.style.transform = 'translateY(-5px)';
