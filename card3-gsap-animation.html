@@ -181,6 +181,7 @@
     const FILL_DURATION = 320;
     const FILL_STAGGER = 80;
     const ARROW_DURATION = 420;
+    const ARROW_GAP = 120;
     const SCENE_GAP = 140;
     const LOOP_DELAY = 700;
 
@@ -412,7 +413,7 @@
           await animateScene(sceneConfig[index]);
 
           if (index < arrowConfig.length) {
-            await wait(120, signal);
+            await wait(ARROW_GAP, signal);
             if (signal.aborted) {
               return;
             }
