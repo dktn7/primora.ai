@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Primora Card 3 – GSAP Stroke Animation</title>
+  <title>Primora Card 3 – Smooth SVG Animation</title>
   <style>
     /* ─── Page Layout ─── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,27 +35,8 @@
       height: auto;
       display: block;
     }
-    .controls {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-      justify-content: center;
-    }
-    button {
-      padding: 0.6rem 1.8rem;
-      border: none;
-      border-radius: 2rem;
-      font-size: 1rem;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    #playBtn { background: #4f46e5; color: #fff; }
-    #playBtn:hover { background: #3730a3; }
-    #resetBtn { background: #e5e7eb; color: #333; }
-    #resetBtn:hover { background: #d1d5db; }
     #status {
-      margin-top: 1rem;
+      margin-top: 1.25rem;
       font-size: 0.9rem;
       color: #6b7280;
       text-align: center;
@@ -121,7 +102,7 @@
   </style>
 </head>
 <body>
-  <h1>Primora · Card 3 Storyboard</h1>
+  <h1>Primora · Card 3 Animation</h1>
   <div class="card">
     <!--
       SVG layout (left → right):
@@ -190,61 +171,74 @@
       </g>
     </svg>
 
-    <div class="controls">
-      <button id="playBtn">▶ Play</button>
-      <button id="resetBtn">↺ Reset</button>
-    </div>
-    <div id="status">Press Play to begin the storyboard animation.</div>
+    <div id="status">Smooth SVG animation is playing.</div>
   </div>
 
-  <!-- GSAP CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script>
-    // ── Helpers ─────────────────────────────────────────────────
-
-    /** Fallback stroke length used when no geometry can be computed. */
     const FALLBACK_LENGTH = 100;
+    const STROKE_DURATION = 900;
+    const STROKE_STAGGER = 130;
+    const FILL_DURATION = 320;
+    const FILL_STAGGER = 80;
+    const ARROW_DURATION = 420;
+    const SCENE_GAP = 140;
+    const LOOP_DELAY = 700;
 
-    /** Seconds of extra hold time added after each scene's last animation. */
-    const SCENE_PAUSE_BUFFER = 0.4;
+    const sceneConfig = [
+      { id: 'leftPerson', label: 'Scene 1 · Stressed', fillSel: null },
+      { id: 'brain', label: 'Scene 2 · Primora AI', fillSel: '#brain .node' },
+      { id: 'rightPerson', label: 'Scene 3 · Empowered', fillSel: '#rightPerson #tie, #rightPerson .star' },
+    ];
 
-    /** Return the stroke length for any SVG shape element. */
+    const arrowConfig = [
+      { lineId: 'arrowLine1', headId: 'arrowHead1' },
+      { lineId: 'arrowLine2', headId: 'arrowHead2' },
+    ];
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const statusEl = document.getElementById('status');
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     function getDrawLength(el) {
       if (typeof el.getTotalLength === 'function') {
-        // getTotalLength may throw for zero-length or invisible paths — ignore and fall through
         try { return el.getTotalLength(); } catch (e) { /* intentional fall-through */ }
       }
+
       const tag = el.tagName.toLowerCase();
       if (tag === 'circle') {
         return 2 * Math.PI * parseFloat(el.getAttribute('r') || 5);
       }
+
       if (tag === 'polyline' || tag === 'polygon') {
         const pts = el.points;
         let len = 0;
         for (let i = 1; i < pts.numberOfItems; i++) {
-          const a = pts.getItem(i - 1), b = pts.getItem(i);
+          const a = pts.getItem(i - 1);
+          const b = pts.getItem(i);
           len += Math.hypot(b.x - a.x, b.y - a.y);
         }
         if (tag === 'polygon' && pts.numberOfItems > 1) {
-          const a = pts.getItem(pts.numberOfItems - 1), b = pts.getItem(0);
+          const a = pts.getItem(pts.numberOfItems - 1);
+          const b = pts.getItem(0);
           len += Math.hypot(b.x - a.x, b.y - a.y);
         }
-        // Guard against degenerate zero-length polygons
         return len || FALLBACK_LENGTH;
       }
-      // Unknown shape type — use a safe non-zero default so dashoffset is never 0
+
       return FALLBACK_LENGTH;
     }
 
-    /** Sort elements left → right by bounding-box centre x. */
-    function sortByX(els) {
-      return els.slice().sort((a, b) => {
-        const ba = a.getBBox(), bb = b.getBBox();
-        return (ba.x + ba.width / 2) - (bb.x + bb.width / 2);
+    function sortByX(elements) {
+      return elements.slice().sort((a, b) => {
+        const boxA = a.getBBox();
+        const boxB = b.getBBox();
+        return (boxA.x + boxA.width / 2) - (boxB.x + boxB.width / 2);
       });
     }
 
-    /** Return sorted drawable elements inside a group. */
     function getGroupEls(groupId) {
       const nodes = document.querySelectorAll(
         `#${groupId} path, #${groupId} circle, #${groupId} polyline, #${groupId} polygon`
@@ -252,134 +246,165 @@
       return sortByX(Array.from(nodes));
     }
 
-    // ── Scenes (left → right) ────────────────────────────────────
-    const sceneConfig = [
-      { id: 'leftPerson',  label: 'Scene 1 · Stressed',   fillSel: null },
-      { id: 'brain',       label: 'Scene 2 · Primora AI',  fillSel: '#brain .node' },
-      { id: 'rightPerson', label: 'Scene 3 · Empowered',   fillSel: '#rightPerson #tie, #rightPerson .star' },
-    ];
+    function setStrokeState(el, hidden) {
+      const length = getDrawLength(el);
+      el.style.strokeDasharray = `${length}`;
+      el.style.strokeDashoffset = hidden ? `${length}` : '0';
+    }
 
-    // Arrow configs: each arrow draws between two consecutive scenes
-    const arrowConfig = [
-      { lineId: 'arrowLine1', headId: 'arrowHead1' },  // after scene 0, before scene 1
-      { lineId: 'arrowLine2', headId: 'arrowHead2' },  // after scene 1, before scene 2
-    ];
-
-    // ── Prepare / reset ──────────────────────────────────────────
     function prepareElements() {
       sceneConfig.forEach(scene => {
-        getGroupEls(scene.id).forEach(el => {
-          const len = getDrawLength(el);
-          gsap.set(el, { strokeDasharray: len, strokeDashoffset: len });
-        });
+        getGroupEls(scene.id).forEach(el => setStrokeState(el, true));
       });
-      // Hide fills for coloured elements — revealed after strokes draw
-      document.querySelectorAll('#brain .node, #rightPerson #tie, #rightPerson .star')
-        .forEach(el => gsap.set(el, { fillOpacity: 0 }));
 
-      // Prepare arrows — hide arrow lines (stroke-draw) and heads (opacity)
+      document.querySelectorAll('#brain .node, #rightPerson #tie, #rightPerson .star')
+        .forEach(el => {
+          el.style.fillOpacity = '0';
+        });
+
       arrowConfig.forEach(arrow => {
         const line = document.getElementById(arrow.lineId);
         const head = document.getElementById(arrow.headId);
+
         if (line) {
-          const len = getDrawLength(line);
-          gsap.set(line, { strokeDasharray: len, strokeDashoffset: len });
+          setStrokeState(line, true);
         }
         if (head) {
-          gsap.set(head, { opacity: 0 });
+          head.style.opacity = '0';
         }
       });
     }
 
-    // ── Build GSAP timeline ──────────────────────────────────────
-    function buildTimeline() {
-      prepareElements();
-      const tl = gsap.timeline({ paused: true });
-      const statusEl = document.getElementById('status');
+    function revealAll() {
+      sceneConfig.forEach(scene => {
+        getGroupEls(scene.id).forEach(el => setStrokeState(el, false));
+      });
 
-      sceneConfig.forEach((scene, si) => {
-        const els = getGroupEls(scene.id);
-        const label = `scene${si}`;
-
-        tl.addLabel(label);
-        tl.call(() => { statusEl.textContent = scene.label; }, null, label);
-
-        // Animate each element's stroke left → right with a slight stagger
-        els.forEach((el, i) => {
-          tl.to(el, {
-            strokeDashoffset: 0,
-            duration: 1.6,
-            ease: 'power2.inOut'
-          }, `${label}+=${i * 0.35}`);
+      document.querySelectorAll('#brain .node, #rightPerson #tie, #rightPerson .star')
+        .forEach(el => {
+          el.style.fillOpacity = '1';
         });
 
-        // After strokes finish, fade in fills for coloured elements
-        if (scene.fillSel) {
-          const fillEls = Array.from(document.querySelectorAll(scene.fillSel));
-          const strokeEnd = (els.length - 1) * 0.35 + 1.6;
-          tl.to(fillEls, {
-            fillOpacity: 1,
-            duration: 0.45,
-            stagger: 0.1,
-            ease: 'power1.inOut'
-          }, `${label}+=${strokeEnd}`);
+      arrowConfig.forEach(arrow => {
+        const line = document.getElementById(arrow.lineId);
+        const head = document.getElementById(arrow.headId);
+
+        if (line) {
+          setStrokeState(line, false);
         }
-
-        // Pause between scenes (not after the final one).
-        // Ensure the pause falls AFTER all fill-in animations finish:
-        //   fills start at strokeEnd, last fill ends at strokeEnd + 0.45 + (n-1)*0.1
-        if (si < sceneConfig.length - 1) {
-          const strokeEnd = (els.length - 1) * 0.35 + 1.6;
-          const fillEnd = scene.fillSel
-            ? strokeEnd + 0.45 + (Array.from(document.querySelectorAll(scene.fillSel)).length - 1) * 0.1
-            : strokeEnd;
-
-          // Animate the step arrow between this scene and the next
-          const arrow = arrowConfig[si];
-          if (arrow) {
-            const arrowLabel = `arrow${si}`;
-            const arrowStart = fillEnd + 0.15;
-            tl.addLabel(arrowLabel, `${label}+=${arrowStart.toFixed(2)}`);
-
-            const line = document.getElementById(arrow.lineId);
-            const head = document.getElementById(arrow.headId);
-            if (line) {
-              tl.to(line, {
-                strokeDashoffset: 0,
-                duration: 0.6,
-                ease: 'power2.inOut'
-              }, arrowLabel);
-            }
-            if (head) {
-              tl.to(head, {
-                opacity: 1,
-                duration: 0.25,
-                ease: 'power1.in'
-              }, `${arrowLabel}+=0.5`);
-            }
-
-            // Place pause after arrow finishes
-            tl.addPause(`${label}+=${(arrowStart + 0.9 + SCENE_PAUSE_BUFFER).toFixed(2)}`);
-          } else {
-            tl.addPause(`${label}+=${(fillEnd + SCENE_PAUSE_BUFFER).toFixed(2)}`);
-          }
+        if (head) {
+          head.style.opacity = '1';
         }
       });
-
-      tl.call(() => { statusEl.textContent = '✓ Animation complete!'; });
-      return tl;
     }
 
-    // ── Controls ─────────────────────────────────────────────────
-    let tl = buildTimeline();
+    function animateStroke(el, delay = 0, duration = STROKE_DURATION) {
+      const length = getDrawLength(el);
+      el.getAnimations().forEach(animation => animation.cancel());
+      el.style.strokeDasharray = `${length}`;
+      el.style.strokeDashoffset = `${length}`;
+      return el.animate(
+        [
+          { strokeDashoffset: `${length}` },
+          { strokeDashoffset: '0' }
+        ],
+        {
+          duration,
+          delay,
+          easing: 'cubic-bezier(0.33, 0, 0.2, 1)',
+          fill: 'forwards'
+        }
+      ).finished;
+    }
 
-    document.getElementById('playBtn').addEventListener('click', () => tl.play());
+    function animateFill(el, delay = 0) {
+      el.getAnimations().forEach(animation => animation.cancel());
+      el.style.fillOpacity = '0';
+      return el.animate(
+        [
+          { fillOpacity: 0 },
+          { fillOpacity: 1 }
+        ],
+        {
+          duration: FILL_DURATION,
+          delay,
+          easing: 'ease-out',
+          fill: 'forwards'
+        }
+      ).finished;
+    }
 
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      tl.kill();
-      tl = buildTimeline();
-      document.getElementById('status').textContent = 'Reset. Press Play to start again.';
-    });
+    function animateOpacity(el, delay = 0) {
+      el.getAnimations().forEach(animation => animation.cancel());
+      el.style.opacity = '0';
+      return el.animate(
+        [
+          { opacity: 0 },
+          { opacity: 1 }
+        ],
+        {
+          duration: 220,
+          delay,
+          easing: 'ease-out',
+          fill: 'forwards'
+        }
+      ).finished;
+    }
+
+    async function animateScene(scene) {
+      statusEl.textContent = scene.label;
+
+      const drawableEls = getGroupEls(scene.id);
+      await Promise.all(
+        drawableEls.map((el, index) => animateStroke(el, index * STROKE_STAGGER))
+      );
+
+      if (scene.fillSel) {
+        const fillEls = Array.from(document.querySelectorAll(scene.fillSel));
+        await Promise.all(
+          fillEls.map((el, index) => animateFill(el, index * FILL_STAGGER))
+        );
+      }
+    }
+
+    async function animateArrow(arrow) {
+      const line = document.getElementById(arrow.lineId);
+      const head = document.getElementById(arrow.headId);
+
+      if (line) {
+        await animateStroke(line, 0, ARROW_DURATION);
+      }
+      if (head) {
+        await animateOpacity(head, 0);
+      }
+    }
+
+    async function runAnimationLoop() {
+      while (true) {
+        prepareElements();
+
+        for (let index = 0; index < sceneConfig.length; index += 1) {
+          await animateScene(sceneConfig[index]);
+
+          if (index < arrowConfig.length) {
+            await wait(120);
+            await animateArrow(arrowConfig[index]);
+          }
+
+          await wait(SCENE_GAP);
+        }
+
+        statusEl.textContent = 'Looping smooth animation…';
+        await wait(LOOP_DELAY);
+      }
+    }
+
+    if (prefersReducedMotion) {
+      revealAll();
+      statusEl.textContent = 'Animation paused because reduced motion is enabled.';
+    } else {
+      runAnimationLoop();
+    }
   </script>
 </body>
 </html>
