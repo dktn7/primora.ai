@@ -184,6 +184,7 @@
     const ARROW_GAP = 120;
     const SCENE_GAP = 140;
     const LOOP_DELAY = 700;
+    const COLORED_FILL_SELECTOR = '#brain .node, #rightPerson #tie, #rightPerson .star';
 
     const sceneConfig = [
       { id: 'leftPerson', label: 'Scene 1 · Stressed', fillSel: null },
@@ -200,19 +201,18 @@
     const statusEl = document.getElementById('status');
 
     function wait(ms, signal) {
-      if (signal?.aborted) {
-        return Promise.resolve();
-      }
-
       return new Promise(resolve => {
+        if (signal?.aborted) {
+          resolve();
+          return;
+        }
+
         const timeoutId = setTimeout(() => {
-          signal?.removeEventListener('abort', handleAbort);
           resolve();
         }, ms);
 
         function handleAbort() {
           clearTimeout(timeoutId);
-          signal?.removeEventListener('abort', handleAbort);
           resolve();
         }
 
@@ -279,7 +279,7 @@
         getGroupEls(scene.id).forEach(el => setStrokeState(el, true));
       });
 
-      document.querySelectorAll('#brain .node, #rightPerson #tie, #rightPerson .star')
+      document.querySelectorAll(COLORED_FILL_SELECTOR)
         .forEach(el => {
           el.style.fillOpacity = '0';
         });
@@ -302,7 +302,7 @@
         getGroupEls(scene.id).forEach(el => setStrokeState(el, false));
       });
 
-      document.querySelectorAll('#brain .node, #rightPerson #tie, #rightPerson .star')
+      document.querySelectorAll(COLORED_FILL_SELECTOR)
         .forEach(el => {
           el.style.fillOpacity = '1';
         });
@@ -405,12 +405,12 @@
       while (!signal.aborted) {
         prepareElements();
 
-        for (let index = 0; index < sceneConfig.length; index += 1) {
+        for (const [index, scene] of sceneConfig.entries()) {
           if (signal.aborted) {
             return;
           }
 
-          await animateScene(sceneConfig[index]);
+          await animateScene(scene);
 
           if (index < arrowConfig.length) {
             await wait(ARROW_GAP, signal);
@@ -435,8 +435,9 @@
       const animationController = new AbortController();
       const stopAnimationLoop = () => animationController.abort();
 
-      window.addEventListener('pagehide', stopAnimationLoop, { once: true });
-      window.addEventListener('beforeunload', stopAnimationLoop, { once: true });
+      ['pagehide', 'beforeunload'].forEach(eventName => {
+        window.addEventListener(eventName, stopAnimationLoop, { once: true });
+      });
 
       runAnimationLoop(animationController.signal);
     }
