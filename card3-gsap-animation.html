@@ -198,8 +198,25 @@
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const statusEl = document.getElementById('status');
 
-    function wait(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
+    function wait(ms, signal) {
+      if (signal?.aborted) {
+        return Promise.resolve();
+      }
+
+      return new Promise(resolve => {
+        const timeoutId = setTimeout(() => {
+          signal?.removeEventListener('abort', handleAbort);
+          resolve();
+        }, ms);
+
+        function handleAbort() {
+          clearTimeout(timeoutId);
+          signal?.removeEventListener('abort', handleAbort);
+          resolve();
+        }
+
+        signal?.addEventListener('abort', handleAbort, { once: true });
+      });
     }
 
     function getDrawLength(el) {
@@ -252,6 +269,10 @@
       el.style.strokeDashoffset = hidden ? `${length}` : '0';
     }
 
+    function cancelAnimations(el) {
+      el.getAnimations().forEach(animation => animation.cancel());
+    }
+
     function prepareElements() {
       sceneConfig.forEach(scene => {
         getGroupEls(scene.id).forEach(el => setStrokeState(el, true));
@@ -300,7 +321,7 @@
 
     function animateStroke(el, delay = 0, duration = STROKE_DURATION) {
       const length = getDrawLength(el);
-      el.getAnimations().forEach(animation => animation.cancel());
+      cancelAnimations(el);
       el.style.strokeDasharray = `${length}`;
       el.style.strokeDashoffset = `${length}`;
       return el.animate(
@@ -318,7 +339,7 @@
     }
 
     function animateFill(el, delay = 0) {
-      el.getAnimations().forEach(animation => animation.cancel());
+      cancelAnimations(el);
       el.style.fillOpacity = '0';
       return el.animate(
         [
@@ -335,7 +356,7 @@
     }
 
     function animateOpacity(el, delay = 0) {
-      el.getAnimations().forEach(animation => animation.cancel());
+      cancelAnimations(el);
       el.style.opacity = '0';
       return el.animate(
         [
@@ -379,23 +400,30 @@
       }
     }
 
-    async function runAnimationLoop() {
-      while (true) {
+    async function runAnimationLoop(signal) {
+      while (!signal.aborted) {
         prepareElements();
 
         for (let index = 0; index < sceneConfig.length; index += 1) {
+          if (signal.aborted) {
+            return;
+          }
+
           await animateScene(sceneConfig[index]);
 
           if (index < arrowConfig.length) {
-            await wait(120);
+            await wait(120, signal);
+            if (signal.aborted) {
+              return;
+            }
             await animateArrow(arrowConfig[index]);
           }
 
-          await wait(SCENE_GAP);
+          await wait(SCENE_GAP, signal);
         }
 
         statusEl.textContent = 'Looping smooth animation…';
-        await wait(LOOP_DELAY);
+        await wait(LOOP_DELAY, signal);
       }
     }
 
@@ -403,7 +431,13 @@
       revealAll();
       statusEl.textContent = 'Animation paused because reduced motion is enabled.';
     } else {
-      runAnimationLoop();
+      const animationController = new AbortController();
+      const stopAnimationLoop = () => animationController.abort();
+
+      window.addEventListener('pagehide', stopAnimationLoop, { once: true });
+      window.addEventListener('beforeunload', stopAnimationLoop, { once: true });
+
+      runAnimationLoop(animationController.signal);
     }
   </script>
 </body>
