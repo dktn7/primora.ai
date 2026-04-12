@@ -47,10 +47,20 @@ h1.auto-type-h1 {
   }
 }
 
-/* ── Hero section: height locked by JS before Typed.js starts (see script.js) ──
-   overflow:hidden ensures nothing can bleed out and push siblings down */
+/* ── Hero section: fixed min-height for mobile so section never shifts ──
+   Accounts for: py-28 (7rem top + 7rem bottom) + h1 (7.5rem) + paragraph
+   (~7rem) + buttons (~4rem) + tagline (~2rem) = ~34.5rem total.
+   We use 36rem as a safe ceiling so nothing ever causes a layout shift.
+   On md+ the JS lock takes over with a precise measured value.
+*/
 section.hero-glow {
   overflow: hidden;
+  min-height: 36rem;
+}
+@media (min-width: 768px) {
+  section.hero-glow {
+    min-height: 0; /* JS takes over on desktop */
+  }
 }
 
 /* ── Section band ── */
