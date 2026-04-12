@@ -248,8 +248,9 @@ function playStory() {
 }
 window.addEventListener('load', () => gsap.delayedCall(0.5, playStory));
 
-// ── Smooth scroll — dynamic: recalculate header height at click time, not page load ──
-// This handles Typed.js headline shifts that change the page layout after load.
+// ── Smooth scroll — fully adaptive to live layout ──
+// Uses getBoundingClientRect() which always reflects the actual rendered position
+// at the exact moment of the click — immune to Typed.js / AOS layout shifts.
 document.addEventListener('click', e => {
   const link = e.target.closest('a[href^="#"]');
   if (!link) return;
@@ -257,9 +258,11 @@ document.addEventListener('click', e => {
   const target = document.getElementById(link.getAttribute('href').slice(1));
   if (!target) return;
 
-  // Measure the live header height right now and apply it to the target element
+  // getBoundingClientRect().top = distance from current viewport top to element top
+  // window.scrollY = how far the page is already scrolled
+  // header.offsetHeight = live sticky header height at this exact moment
   const navHeight = document.querySelector('header').offsetHeight;
-  target.style.scrollMarginTop = navHeight + 'px';
+  const targetTop = target.getBoundingClientRect().top + window.scrollY - navHeight;
 
-  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  window.scrollTo({ top: targetTop, behavior: 'smooth' });
 });
