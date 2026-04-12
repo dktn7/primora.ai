@@ -36,11 +36,18 @@ document.addEventListener('DOMContentLoaded', () => {
     startEvent: 'load'
   });
 
-  // h1 height lock (safety net — CSS min-height is primary)
-  const h1 = document.querySelector('h1');
-  if (h1) {
-    const lineH = parseFloat(getComputedStyle(h1).lineHeight) || 90;
-    h1.style.minHeight = (lineH * 2 + 8) + 'px';
+  // ── Lock hero section height BEFORE Typed.js starts ──
+  // 1. Force the h1 to its full two-line min-height so the section measures correctly
+  // 2. Read the section's full offsetHeight (padding + h1 + paragraph + buttons)
+  // 3. Pin that as min-height so Typed.js typing never changes the section footprint
+  const hero = document.querySelector('section.hero-glow');
+  const h1   = document.querySelector('h1.auto-type-h1');
+  if (hero && h1) {
+    // Apply computed min-height from CSS so offsetHeight is accurate
+    const computedMinH = parseFloat(getComputedStyle(h1).minHeight) || 0;
+    if (computedMinH > 0) h1.style.minHeight = computedMinH + 'px';
+    // Now the section height reflects the fully-typed state — lock it
+    hero.style.minHeight = hero.offsetHeight + 'px';
   }
 
   new Typed('.auto-type-1', {
@@ -249,20 +256,13 @@ function playStory() {
 window.addEventListener('load', () => gsap.delayedCall(0.5, playStory));
 
 // ── Smooth scroll — fully adaptive to live layout ──
-// Uses getBoundingClientRect() which always reflects the actual rendered position
-// at the exact moment of the click — immune to Typed.js / AOS layout shifts.
 document.addEventListener('click', e => {
   const link = e.target.closest('a[href^="#"]');
   if (!link) return;
   e.preventDefault();
   const target = document.getElementById(link.getAttribute('href').slice(1));
   if (!target) return;
-
-  // getBoundingClientRect().top = distance from current viewport top to element top
-  // window.scrollY = how far the page is already scrolled
-  // header.offsetHeight = live sticky header height at this exact moment
   const navHeight = document.querySelector('header').offsetHeight;
   const targetTop = target.getBoundingClientRect().top + window.scrollY - navHeight;
-
   window.scrollTo({ top: targetTop, behavior: 'smooth' });
 });

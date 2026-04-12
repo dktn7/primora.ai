@@ -47,6 +47,12 @@ h1.auto-type-h1 {
   }
 }
 
+/* ── Hero section: height locked by JS before Typed.js starts (see script.js) ──
+   overflow:hidden ensures nothing can bleed out and push siblings down */
+section.hero-glow {
+  overflow: hidden;
+}
+
 /* ── Section band ── */
 .section-band {
   background: rgba(0,0,0,0.15);
@@ -181,7 +187,6 @@ h1.auto-type-h1 {
   .doodle-wrap { margin-top: 16px; }
   .doodle-wrap svg { min-height: 100px; }
 
-  /* Card body text */
   .bento-card p.text-sm,
   .bento-card-half p.text-sm {
     font-size: 14px !important;
@@ -191,7 +196,6 @@ h1.auto-type-h1 {
   }
   .bento-card h3 { font-size: 18px !important; }
 
-  /* Checklist */
   .check-item {
     font-size: 13px;
     font-weight: 600;
@@ -199,7 +203,6 @@ h1.auto-type-h1 {
   }
   .check-item.done { color: rgba(255,255,255,0.85); }
 
-  /* Stats + Why Choose grey text */
   .rounded-3xl p.text-sm {
     font-size: 13px !important;
     font-weight: 600 !important;
@@ -210,6 +213,4 @@ h1.auto-type-h1 {
     font-weight: 600 !important;
     color: rgba(255,255,255,0.85) !important;
   }
-
-  section.hero-glow .max-w-6xl { overflow: hidden; }
 }
