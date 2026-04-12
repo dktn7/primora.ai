@@ -96,13 +96,15 @@ while (nodes.length < 28 && attempts < 2000) {
 
 function drawBrainOutline() {
   ctx.save();
-  ctx.strokeStyle = 'rgba(212,190,84,0.08)';
+  // Blue outline for brain structure
+  ctx.strokeStyle = 'rgba(96,165,250,0.5)';
   ctx.lineWidth = 1.5;
   ctx.stroke(BRAIN_PATH);
+  // Blue centre dividing line
   ctx.beginPath();
   ctx.moveTo(110, 48);
   ctx.bezierCurveTo(106, 70, 106, 90, 110, 112);
-  ctx.strokeStyle = 'rgba(212,190,84,0.06)';
+  ctx.strokeStyle = 'rgba(96,165,250,0.3)';
   ctx.lineWidth = 1;
   ctx.stroke();
   ctx.restore();
@@ -113,8 +115,10 @@ function drawBrain() {
   ctx.clearRect(0, 0, W, H);
   ctx.save();
   ctx.clip(BRAIN_PATH);
-  ctx.fillStyle = 'rgba(212,190,84,0.02)';
+  // Subtle blue fill tint
+  ctx.fillStyle = 'rgba(96,165,250,0.03)';
   ctx.fill(BRAIN_PATH);
+  // Blue connection lines
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i+1; j < nodes.length; j++) {
       const dx = nodes[i].x-nodes[j].x, dy = nodes[i].y-nodes[j].y;
@@ -123,12 +127,13 @@ function drawBrain() {
         ctx.beginPath();
         ctx.moveTo(nodes[i].x, nodes[i].y);
         ctx.lineTo(nodes[j].x, nodes[j].y);
-        ctx.strokeStyle = `rgba(212,190,84,${(1-dist/55)*0.25})`;
+        ctx.strokeStyle = `rgba(96,165,250,${(1-dist/55)*0.3})`;
         ctx.lineWidth = 0.8;
         ctx.stroke();
       }
     }
   }
+  // Gold nodes with gold glow
   nodes.forEach(n => {
     n.pulse += n.pulseSpeed;
     const glow = 0.5+0.5*Math.sin(n.pulse), alpha = 0.4+0.5*glow, radius = n.r+glow*1.2;
