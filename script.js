@@ -46,60 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── Background animated lines ──
-(function () {
-  const c = document.getElementById('bgLines');
-  const cx = c.getContext('2d');
-  let W, H;
-  function resize() {
-    W = c.width = window.innerWidth;
-    H = c.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  const LINE_COUNT = 18;
-  const lines = Array.from({ length: LINE_COUNT }, () => ({
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    len: 80 + Math.random() * 160,
-    angle: Math.PI / 4 + (Math.random() - 0.5) * 0.4,
-    speed: 0.18 + Math.random() * 0.22,
-    opacity: 0.04 + Math.random() * 0.08,
-    width: 0.5 + Math.random() * 0.8,
-    color: Math.random() > 0.5 ? '212,190,84' : '96,165,250'
-  }));
-
-  function drawLines() {
-    cx.clearRect(0, 0, W, H);
-    lines.forEach(l => {
-      cx.save();
-      cx.translate(l.x, l.y);
-      cx.rotate(l.angle);
-      const grad = cx.createLinearGradient(0, 0, l.len, 0);
-      grad.addColorStop(0,   `rgba(${l.color},0)`);
-      grad.addColorStop(0.4, `rgba(${l.color},${l.opacity})`);
-      grad.addColorStop(0.6, `rgba(${l.color},${l.opacity})`);
-      grad.addColorStop(1,   `rgba(${l.color},0)`);
-      cx.strokeStyle = grad;
-      cx.lineWidth = l.width;
-      cx.beginPath();
-      cx.moveTo(0, 0);
-      cx.lineTo(l.len, 0);
-      cx.stroke();
-      cx.restore();
-      l.x += Math.cos(l.angle) * l.speed;
-      l.y += Math.sin(l.angle) * l.speed;
-      if (l.x > W + 200 || l.y > H + 200) {
-        l.x = -200 + Math.random() * 100;
-        l.y = Math.random() * H;
-      }
-    });
-    requestAnimationFrame(drawLines);
-  }
-  drawLines();
-})();
-
 // ── Neural brain canvas ──
 const canvas = document.getElementById('nodeCanvas');
 const ctx = canvas.getContext('2d');
@@ -216,7 +162,7 @@ function tickNext() {
 }
 tickNext();
 
-// ── GSAP doodle story (original — screen border stays visible through LIVE) ──
+// ── GSAP doodle story ──
 function playStory() {
   const tl = gsap.timeline({ onComplete: () => gsap.delayedCall(1.5, playStory) });
   tl.set(['#desk','#phone','#phoneScreen','#callWave1','#callWave2','#connectArrow','#arrowHead',
