@@ -27,11 +27,19 @@ function createBenefitsCards() {
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
-  AOS.init({ duration: 900, once: true, offset: 80 });
   createBenefitsCards();
 
+  // AOS: offset:0 so elements animate the moment they enter the viewport (no stale
+  // pre-animation gap). startEvent:'load' ensures positions are calculated after
+  // fonts + images have painted, preventing stale offset measurements.
+  AOS.init({
+    duration: 900,
+    once: true,
+    offset: 0,
+    startEvent: 'load'
+  });
+
   // Set scroll-margin-top on all anchor targets to exactly the sticky header height.
-  // This means the browser's native scroll snapping lands flush with the section top.
   const navHeight = document.querySelector('header').offsetHeight;
   document.querySelectorAll('section[id], div[id]').forEach(el => {
     el.style.scrollMarginTop = navHeight + 'px';
