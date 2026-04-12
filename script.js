@@ -30,12 +30,16 @@ document.addEventListener('DOMContentLoaded', () => {
   AOS.init({ duration: 900, once: true, offset: 80 });
   createBenefitsCards();
 
-  // Lock h1 height before typing starts so Typed.js DOM mutations
-  // never cause a layout reflow that jitters the canvas below
+  // Set scroll-margin-top on all anchor targets to exactly the sticky header height.
+  // This means the browser's native scroll snapping lands flush with the section top.
+  const navHeight = document.querySelector('header').offsetHeight;
+  document.querySelectorAll('section[id], div[id]').forEach(el => {
+    el.style.scrollMarginTop = navHeight + 'px';
+  });
+
+  // Lock h1 height before Typed.js starts (safety net — CSS min-height is primary)
   const h1 = document.querySelector('h1');
   if (h1) {
-    // Measure the full rendered height (two lines of text) and pin it
-    // We add a small buffer to account for the cursor line
     const lineH = parseFloat(getComputedStyle(h1).lineHeight) || 90;
     h1.style.minHeight = (lineH * 2 + 8) + 'px';
   }
@@ -60,10 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
 const canvas = document.getElementById('nodeCanvas');
 const ctx    = canvas.getContext('2d');
 const wrap   = canvas.parentElement;
-const dpr    = Math.min(window.devicePixelRatio || 1, 3); // cap at 3x to avoid memory issues
+const dpr    = Math.min(window.devicePixelRatio || 1, 3);
 const isMobile = window.innerWidth < 640;
 
-const LW = 220, LH = 130; // logical brain coordinate space
+const LW = 220, LH = 130;
 
 function setCanvasResolution() {
   const cssW = wrap.clientWidth || LW;
@@ -75,12 +79,10 @@ function setCanvasResolution() {
 }
 setCanvasResolution();
 
-// Debounced resize — ignores iOS Safari URL-bar hide/show events
 let _resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
   _resizeTimer = setTimeout(() => {
-    // Only act if width actually changed (not just URL bar toggling)
     const newW = wrap.clientWidth || LW;
     if (Math.abs(newW - (parseInt(canvas.style.width) || 0)) > 10) {
       setCanvasResolution();
@@ -89,7 +91,6 @@ window.addEventListener('resize', () => {
   }, 250);
 });
 
-// ── Brain path (logical 220×130 space) ──
 const BRAIN_PATH = (function () {
   const p = new Path2D();
   p.moveTo(110, 18);
@@ -105,7 +106,6 @@ const BRAIN_PATH = (function () {
   return p;
 })();
 
-// Offscreen hit-test canvas — always 220×130
 const _off  = document.createElement('canvas');
 _off.width  = LW;
 _off.height = LH;
@@ -114,14 +114,12 @@ function pointInBrain(x, y) {
   return _octx.isPointInPath(BRAIN_PATH, x, y);
 }
 
-// Pause animation when canvas scrolls out of view
 let _animating = true;
 new IntersectionObserver(entries => {
   _animating = entries[0].isIntersecting;
   if (_animating) requestAnimationFrame(drawBrain);
 }, { threshold: 0 }).observe(canvas);
 
-// ── Nodes ──
 const NODE_COUNT = isMobile ? 20 : 28;
 let nodes = [];
 function buildNodes() {
@@ -145,24 +143,17 @@ function buildNodes() {
 }
 buildNodes();
 
-// ── Draw loop ──
 function drawBrain() {
   if (!_animating) return;
-
   const pw = canvas.width, ph = canvas.height;
   const sx = pw / LW, sy = ph / LH;
-
   ctx.clearRect(0, 0, pw, ph);
-
   ctx.save();
-  ctx.scale(sx, sy); // map logical → physical
-
-  // Clipped interior (nodes + connections)
+  ctx.scale(sx, sy);
   ctx.save();
   ctx.clip(BRAIN_PATH);
   ctx.fillStyle = 'rgba(96,165,250,0.03)';
   ctx.fill(BRAIN_PATH);
-
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
       const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
@@ -177,7 +168,6 @@ function drawBrain() {
       }
     }
   }
-
   nodes.forEach(n => {
     n.pulse += n.pulseSpeed;
     const glow   = 0.5 + 0.5 * Math.sin(n.pulse);
@@ -194,10 +184,7 @@ function drawBrain() {
     if (pointInBrain(nx, ny)) { n.x = nx; n.y = ny; }
     else { n.vx *= -1; n.vy *= -1; }
   });
-
-  ctx.restore(); // end clip
-
-  // Outline + dividing line (inside scale, outside clip)
+  ctx.restore();
   ctx.strokeStyle = 'rgba(96,165,250,0.5)';
   ctx.lineWidth   = 1.5;
   ctx.stroke(BRAIN_PATH);
@@ -207,9 +194,7 @@ function drawBrain() {
   ctx.strokeStyle = 'rgba(96,165,250,0.3)';
   ctx.lineWidth   = 1;
   ctx.stroke();
-
-  ctx.restore(); // end scale
-
+  ctx.restore();
   requestAnimationFrame(drawBrain);
 }
 drawBrain();
@@ -264,13 +249,12 @@ function playStory() {
 }
 window.addEventListener('load', () => gsap.delayedCall(0.5, playStory));
 
-// ── Smooth scroll ──
+// ── Smooth scroll — scroll-margin-top handles the offset, no manual arithmetic ──
 document.addEventListener('click', e => {
   const link = e.target.closest('a[href^="#"]');
   if (!link) return;
   e.preventDefault();
   const target = document.getElementById(link.getAttribute('href').slice(1));
   if (!target) return;
-  const navHeight = document.querySelector('header').offsetHeight;
-  window.scrollTo({ top: target.offsetTop - navHeight - 20, behavior: 'smooth' });
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });

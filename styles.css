@@ -33,17 +33,17 @@ html, body {
   z-index: -1;
 }
 
-/* ── Hero h1: pre-reserve two lines of space so Typed.js never causes layout shift ──
-   Formula: font-size × line-height (leading-tight = 1.25) × 2 lines
-   Mobile  : text-5xl  = 3rem    → 3   × 1.25 × 2 = 7.5rem
-   Desktop : text-7xl  = 4.5rem  → 4.5 × 1.25 × 2 = 11.25rem
+/* ── Hero h1: pre-reserve two lines so Typed.js never causes layout shift ──
+   Formula: font-size × line-height (leading-tight=1.25) × 2 lines
+   Mobile  : text-5xl  = 3rem   → 3   × 1.25 × 2 = 7.5rem
+   Desktop : text-7xl  = 4.5rem → 4.5 × 1.25 × 2 = 11.25rem
 */
 h1.auto-type-h1 {
-  min-height: 7.5rem;   /* mobile: 2 lines @ text-5xl leading-tight */
+  min-height: 7.5rem;
 }
 @media (min-width: 768px) {
   h1.auto-type-h1 {
-    min-height: 11.25rem; /* desktop: 2 lines @ text-7xl leading-tight */
+    min-height: 11.25rem;
   }
 }
 
