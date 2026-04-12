@@ -90,7 +90,7 @@ html, body {
   font-family: 'Inter', sans-serif;
 }
 
-/* ── Canvas wrapper — CSS scales the fixed-res canvas to fill space ── */
+/* ── Canvas wrapper ── */
 .canvas-wrap {
   flex-shrink: 0;
   width: 220px;
@@ -98,13 +98,15 @@ html, body {
   border-radius: 12px;
   overflow: hidden;
   line-height: 0;
+  /* Own compositor layer — isolates canvas repaints from hero text reflows */
+  will-change: transform;
+  transform: translateZ(0);
 }
 .canvas-wrap canvas {
   display: block;
-  width: 100%;    /* CSS scale: fills wrapper visually */
-  height: auto;   /* maintains 220:130 aspect ratio     */
+  width: 100%;
+  height: auto;
   border-radius: 12px;
-  image-rendering: crisp-edges;
 }
 
 /* ── Checklist ── */
@@ -156,25 +158,17 @@ html, body {
     gap: 20px;
   }
 
-  /* Canvas fills full card width on mobile — CSS scale only, no JS resize */
-  .canvas-wrap {
-    width: 100%;
-  }
+  .canvas-wrap { width: 100%; }
 
   .bento-card-half {
     padding: 26px 22px 22px;
     min-height: unset;
   }
 
-  /* Card 3 doodle: taller on mobile so animation is clearly visible */
-  .doodle-wrap {
-    margin-top: 16px;
-  }
-  .doodle-wrap svg {
-    min-height: 100px;
-  }
+  .doodle-wrap { margin-top: 16px; }
+  .doodle-wrap svg { min-height: 100px; }
 
-  /* ── Card body text: larger + bolder on mobile ── */
+  /* Card body text */
   .bento-card p.text-sm,
   .bento-card-half p.text-sm {
     font-size: 14px !important;
@@ -182,36 +176,27 @@ html, body {
     color: rgba(255,255,255,0.85) !important;
     line-height: 1.65 !important;
   }
+  .bento-card h3 { font-size: 18px !important; }
 
-  /* Card headings visible */
-  .bento-card h3 {
-    font-size: 18px !important;
-  }
-
-  /* Checklist items readable */
+  /* Checklist */
   .check-item {
     font-size: 13px;
     font-weight: 600;
     color: rgba(255,255,255,0.5);
   }
-  .check-item.done {
-    color: rgba(255,255,255,0.85);
-  }
+  .check-item.done { color: rgba(255,255,255,0.85); }
 
-  /* Stats section grey body text */
+  /* Stats + Why Choose grey text */
   .rounded-3xl p.text-sm {
     font-size: 13px !important;
     font-weight: 600 !important;
     color: rgba(255,255,255,0.8) !important;
   }
-
-  /* Why Choose grey text */
   .rounded-2xl p.text-sm {
     font-size: 13px !important;
     font-weight: 600 !important;
     color: rgba(255,255,255,0.85) !important;
   }
 
-  /* Prevent hero description box from overflowing */
   section.hero-glow .max-w-6xl { overflow: hidden; }
 }

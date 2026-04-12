@@ -30,6 +30,16 @@ document.addEventListener('DOMContentLoaded', () => {
   AOS.init({ duration: 900, once: true, offset: 80 });
   createBenefitsCards();
 
+  // Lock h1 height before typing starts so Typed.js DOM mutations
+  // never cause a layout reflow that jitters the canvas below
+  const h1 = document.querySelector('h1');
+  if (h1) {
+    // Measure the full rendered height (two lines of text) and pin it
+    // We add a small buffer to account for the cursor line
+    const lineH = parseFloat(getComputedStyle(h1).lineHeight) || 90;
+    h1.style.minHeight = (lineH * 2 + 8) + 'px';
+  }
+
   new Typed('.auto-type-1', {
     strings: ['Stop Doing It <span style="color:#D4BE54">Manually</span>.'],
     typeSpeed: 90,
@@ -47,38 +57,36 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ── Neural brain canvas — HiDPI / retina aware ──
-//
-// Strategy:
-//   - Logical drawing space is always 220×130 (brain path coordinates).
-//   - Canvas backing store = cssWidth × dpr  by  cssHeight × dpr  (sharp pixels).
-//   - ctx.scale(dpr, dpr) maps logical coords to physical pixels each frame.
-//   - CSS width:100% / height:auto lets the wrapper control display size.
-//   - pointInBrain uses a separate 220×130 offscreen ctx (no dpr) for hit-testing.
-
 const canvas = document.getElementById('nodeCanvas');
 const ctx    = canvas.getContext('2d');
 const wrap   = canvas.parentElement;
-const dpr    = window.devicePixelRatio || 1;
+const dpr    = Math.min(window.devicePixelRatio || 1, 3); // cap at 3x to avoid memory issues
 const isMobile = window.innerWidth < 640;
 
-// Logical brain dimensions (match the Path2D coordinates below)
-const LW = 220, LH = 130;
+const LW = 220, LH = 130; // logical brain coordinate space
 
 function setCanvasResolution() {
-  // Physical pixels = CSS pixels × dpr
-  const cssW = wrap.clientWidth  || LW;
-  const cssH = Math.round(cssW * LH / LW); // maintain aspect ratio
+  const cssW = wrap.clientWidth || LW;
+  const cssH = Math.round(cssW * LH / LW);
   canvas.width  = Math.round(cssW * dpr);
   canvas.height = Math.round(cssH * dpr);
-  // CSS size stays at the layout size
   canvas.style.width  = cssW + 'px';
   canvas.style.height = cssH + 'px';
 }
 setCanvasResolution();
 
+// Debounced resize — ignores iOS Safari URL-bar hide/show events
+let _resizeTimer;
 window.addEventListener('resize', () => {
-  setCanvasResolution();
-  buildNodes();
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    // Only act if width actually changed (not just URL bar toggling)
+    const newW = wrap.clientWidth || LW;
+    if (Math.abs(newW - (parseInt(canvas.style.width) || 0)) > 10) {
+      setCanvasResolution();
+      buildNodes();
+    }
+  }, 250);
 });
 
 // ── Brain path (logical 220×130 space) ──
@@ -97,7 +105,7 @@ const BRAIN_PATH = (function () {
   return p;
 })();
 
-// Offscreen hit-test canvas — always 220×130 (no dpr scaling needed)
+// Offscreen hit-test canvas — always 220×130
 const _off  = document.createElement('canvas');
 _off.width  = LW;
 _off.height = LH;
@@ -106,7 +114,7 @@ function pointInBrain(x, y) {
   return _octx.isPointInPath(BRAIN_PATH, x, y);
 }
 
-// ── Visibility observer (pause when off-screen) ──
+// Pause animation when canvas scrolls out of view
 let _animating = true;
 new IntersectionObserver(entries => {
   _animating = entries[0].isIntersecting;
@@ -137,31 +145,24 @@ function buildNodes() {
 }
 buildNodes();
 
-// ── Draw ──
+// ── Draw loop ──
 function drawBrain() {
   if (!_animating) return;
 
-  const pw = canvas.width, ph = canvas.height; // physical pixels
+  const pw = canvas.width, ph = canvas.height;
+  const sx = pw / LW, sy = ph / LH;
 
   ctx.clearRect(0, 0, pw, ph);
 
-  // Scale once: logical coords → physical pixels
   ctx.save();
-  ctx.scale(dpr * pw / (LW * dpr), dpr * ph / (LH * dpr));
-  // Simplifies to: ctx.scale(pw/LW, ph/LH) which preserves aspect ratio
-  // Re-express cleanly:
-  ctx.restore();
-  ctx.save();
-  const sx = pw / LW, sy = ph / LH;
-  ctx.scale(sx, sy);
+  ctx.scale(sx, sy); // map logical → physical
 
-  // ─ clipped interior ─
+  // Clipped interior (nodes + connections)
   ctx.save();
   ctx.clip(BRAIN_PATH);
   ctx.fillStyle = 'rgba(96,165,250,0.03)';
   ctx.fill(BRAIN_PATH);
 
-  // Connections
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
       const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
@@ -177,13 +178,11 @@ function drawBrain() {
     }
   }
 
-  // Nodes
   nodes.forEach(n => {
     n.pulse += n.pulseSpeed;
     const glow   = 0.5 + 0.5 * Math.sin(n.pulse);
     const alpha  = 0.4 + 0.5 * glow;
     const radius = n.r + glow * 1.2;
-
     const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, radius * 3);
     grad.addColorStop(0, `rgba(212,190,84,${alpha * 0.6})`);
     grad.addColorStop(1, 'rgba(212,190,84,0)');
@@ -191,7 +190,6 @@ function drawBrain() {
     ctx.fillStyle = grad; ctx.fill();
     ctx.beginPath(); ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(212,190,84,${alpha})`; ctx.fill();
-
     const nx = n.x + n.vx, ny = n.y + n.vy;
     if (pointInBrain(nx, ny)) { n.x = nx; n.y = ny; }
     else { n.vx *= -1; n.vy *= -1; }
@@ -199,7 +197,7 @@ function drawBrain() {
 
   ctx.restore(); // end clip
 
-  // Brain outline + dividing line (inside scale, outside clip)
+  // Outline + dividing line (inside scale, outside clip)
   ctx.strokeStyle = 'rgba(96,165,250,0.5)';
   ctx.lineWidth   = 1.5;
   ctx.stroke(BRAIN_PATH);
@@ -266,7 +264,7 @@ function playStory() {
 }
 window.addEventListener('load', () => gsap.delayedCall(0.5, playStory));
 
-// ── Smooth scroll — offsetTop for reliable mobile positioning ──
+// ── Smooth scroll ──
 document.addEventListener('click', e => {
   const link = e.target.closest('a[href^="#"]');
   if (!link) return;
