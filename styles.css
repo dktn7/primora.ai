@@ -165,6 +165,53 @@ html, body {
     padding: 26px 22px 22px;
     min-height: unset;
   }
+
+  /* ── Card body text: larger + bolder on mobile ── */
+  .bento-card p.text-sm,
+  .bento-card-half p.text-sm {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: rgba(255,255,255,0.85) !important;
+    line-height: 1.65 !important;
+  }
+
+  /* ── Card headings: ensure visibility ── */
+  .bento-card h3 {
+    font-size: 18px !important;
+  }
+
+  /* ── Checklist items: more readable on mobile ── */
+  .check-item {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+  }
+  .check-item.done {
+    color: rgba(255,255,255,0.85);
+  }
+
+  /* ── Stats section grey text ── */
+  .rounded-3xl p.text-sm {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: rgba(255,255,255,0.8) !important;
+  }
+
+  /* ── Why choose grey text ── */
+  .rounded-2xl p.text-sm {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: rgba(255,255,255,0.85) !important;
+  }
+
+  /* ── Doodle card: taller SVG on mobile so it's not cramped ── */
+  .doodle-wrap {
+    margin-top: 14px;
+  }
+  .doodle-wrap svg {
+    min-height: 80px;
+  }
+
   /* Prevent hero description box from overflowing */
   section.hero-glow .max-w-6xl { overflow: hidden; }
 }
