@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Primora AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/jpeg" href="Images/logo.jpeg">
+  <link rel="stylesheet" href="styles.css">
   <script>
     tailwind.config = {
       theme: {
@@ -28,49 +30,6 @@
       }
     }
   </script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    h1, h2, h3 { font-family: 'Syne', sans-serif; }
-    .typed-cursor { color: #D4BE54; }
-
-    /* Original CSS animated diagonal background — preserved */
-    .animated-bg {
-      background-color: #1b243b;
-      background-image: linear-gradient(45deg,
-        transparent 20%,
-        rgba(212,190,84,0.03) 20%,
-        rgba(212,190,84,0.03) 21%,
-        transparent 21%,
-        transparent 40%,
-        rgba(212,190,84,0.03) 40%,
-        rgba(212,190,84,0.03) 41%,
-        transparent 41%
-      );
-      background-size: 300px 300px;
-      animation: moveBackground 8s linear infinite;
-    }
-    @keyframes moveBackground {
-      0%   { background-position: 0 0; }
-      100% { background-position: 300px 300px; }
-    }
-
-    /* Hero gold glow */
-    .hero-glow {
-      position: relative;
-    }
-    .hero-glow::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 600px;
-      height: 300px;
-      background: radial-gradient(ellipse, rgba(212,190,84,0.08) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: -1;
-    }
-  </style>
 </head>
 
 <body class="animated-bg min-h-screen text-white">
@@ -91,10 +50,9 @@
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-6">
-
-    <!-- Hero -->
-    <section class="text-center py-28 mb-8 hero-glow relative">
+  <!-- Hero -->
+  <section class="text-center py-28 hero-glow relative">
+    <div class="max-w-6xl mx-auto px-6">
       <h1 data-aos="fade-up" data-aos-duration="900"
           class="text-5xl md:text-7xl font-black tracking-tight leading-tight mb-8">
         <span class="auto-type-1"></span><br>
@@ -103,7 +61,7 @@
       <p data-aos="fade-up" data-aos-delay="200"
          class="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto bg-white/5 backdrop-blur-sm border border-white/10 px-8 py-5 rounded-2xl leading-relaxed">
         Custom AI solutions that <span class="text-[#D4BE54] font-semibold">save time</span>,
-        <span class="text-[#60A5FA] font-semibold">reduce costs</span> and remove manual work —
+        <span class="text-[#60A5FA] font-semibold">reduce costs</span> and remove manual work &mdash;
         <span class="text-[#D4BE54] font-semibold">tailored to you</span>.
       </p>
       <div data-aos="fade-up" data-aos-delay="400">
@@ -115,90 +73,145 @@
         </button>
         <p class="mt-4 text-sm text-gray-500">No obligation &middot; Free call &middot; UK-based</p>
       </div>
-    </section>
-
-    <!-- Social Proof -->
-    <div data-aos="fade-up" class="text-center mb-24 text-gray-400 text-lg">
-      Helping <span class="text-[#D4BE54] font-semibold">UK businesses</span> work smarter with <span class="text-[#60A5FA] font-semibold">AI</span>
     </div>
+  </section>
 
-    <!-- Feature Cards -->
-    <section class="grid md:grid-cols-3 gap-6 mb-24">
-      <div data-aos="fade-up" data-aos-delay="100"
-           class="group bg-[#232d4a]/80 backdrop-blur-md border border-white/10 rounded-3xl p-8
-                  hover:border-[#D4BE54]/40 hover:shadow-[0_10px_40px_rgba(212,190,84,0.08)]
-                  hover:-translate-y-1 transition-all duration-300">
-        <div class="w-16 h-16 bg-[#D4BE54]/10 rounded-2xl flex items-center justify-center mb-6
-                    group-hover:scale-110 transition-transform duration-300">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D4BE54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-        </div>
-        <h3 class="text-xl font-bold mb-3">Save <span class="text-[#D4BE54]">20+</span> <span class="text-[#60A5FA]">Hours</span> Weekly</h3>
-        <p class="text-gray-400 leading-relaxed text-sm">Eliminate manual data entry and automate repetitive tasks across your operations.</p>
+  <!-- Feature Bento -->
+  <div class="section-band py-24">
+    <div class="max-w-4xl mx-auto px-6">
+
+      <div data-aos="fade-up" class="text-center mb-12 text-gray-400 text-lg">
+        Helping <span class="text-[#D4BE54] font-semibold">UK businesses</span> work smarter with
+        <span class="text-[#60A5FA] font-semibold">AI</span>
       </div>
 
-      <div data-aos="fade-up" data-aos-delay="200"
-           class="group bg-[#232d4a]/80 backdrop-blur-md border border-white/10 rounded-3xl p-8
-                  hover:border-[#D4BE54]/40 hover:shadow-[0_10px_40px_rgba(212,190,84,0.08)]
-                  hover:-translate-y-1 transition-all duration-300">
-        <div class="w-16 h-16 bg-[#D4BE54]/10 rounded-2xl flex items-center justify-center mb-6
-                    group-hover:scale-110 transition-transform duration-300">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D4BE54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-        </div>
-        <h3 class="text-xl font-bold mb-3">Reduce <span class="text-[#60A5FA]">Costs</span> by <span class="text-[#D4BE54]">60%</span></h3>
-        <p class="text-gray-400 leading-relaxed text-sm">Lower operational costs through intelligent automation of your most time-consuming processes.</p>
-      </div>
+      <div class="bento-grid" data-aos="fade-up" data-aos-delay="100">
 
-      <div data-aos="fade-up" data-aos-delay="300"
-           class="group bg-[#232d4a]/80 backdrop-blur-md border border-white/10 rounded-3xl p-8
-                  hover:border-[#D4BE54]/40 hover:shadow-[0_10px_40px_rgba(212,190,84,0.08)]
-                  hover:-translate-y-1 transition-all duration-300">
-        <div class="w-16 h-16 bg-[#D4BE54]/10 rounded-2xl flex items-center justify-center mb-6
-                    group-hover:scale-110 transition-transform duration-300">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D4BE54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-          </svg>
+        <!-- Card 1: Neural brain -->
+        <div class="bento-card bento-card-wide">
+          <div class="card-text">
+            <span class="bento-tag">Automation</span>
+            <h3 class="text-xl font-black mb-2">Your Workflow, <span class="text-[#D4BE54]">On Autopilot</span>.</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">Stop losing hours to tasks that should never need a human. Our smart AI layer handles it.</p>
+          </div>
+          <canvas id="nodeCanvas" width="220" height="150"
+                  style="width:220px;height:150px;flex-shrink:0;border-radius:12px;opacity:0.95;"></canvas>
         </div>
-        <h3 class="text-xl font-bold mb-3"><span class="text-[#D4BE54]">99.9%</span> <span class="text-[#60A5FA]">Accuracy</span></h3>
-        <p class="text-gray-400 leading-relaxed text-sm">AI-powered processing ensures precise results every time with enterprise-grade reliability.</p>
-      </div>
-    </section>
 
-    <!-- Why Choose -->
-    <section data-aos="fade-up" class="mb-24">
+        <!-- Card 2: Checklist ticker -->
+        <div class="bento-card bento-card-half" data-aos="fade-up" data-aos-delay="150">
+          <div>
+            <div class="w-12 h-12 bg-[#D4BE54]/10 rounded-2xl flex items-center justify-center mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4BE54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/>
+                <line x1="17" y1="16" x2="23" y2="16"/>
+              </svg>
+            </div>
+            <span class="bento-tag">Personalised</span>
+            <h3 class="text-xl font-black mb-2">Tailored to You &mdash; <span class="text-[#60A5FA]">Not Off the Shelf</span></h3>
+            <p class="text-gray-400 text-sm leading-relaxed">Every solution is built around your business &mdash; not a generic template.</p>
+          </div>
+          <div class="flex flex-col gap-2 mt-4" id="checklist">
+            <div class="check-item"><div class="check-box"></div><span>Manual tasks automated</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Workflows streamlined</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Hours saved every week</span></div>
+            <div class="check-item"><div class="check-box"></div><span>Your system live &amp; running</span></div>
+          </div>
+        </div>
+
+        <!-- Card 3: Narrative doodle -->
+        <div class="bento-card bento-card-half" data-aos="fade-up" data-aos-delay="200">
+          <div>
+            <div class="w-12 h-12 bg-[#D4BE54]/10 rounded-2xl flex items-center justify-center mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4BE54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.64a16 16 0 0 0 5.45 5.45l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+            </div>
+            <span class="bento-tag">Fast onboarding</span>
+            <h3 class="text-xl font-black mb-2">Discovery Call to <span class="text-[#D4BE54]">Live System</span></h3>
+            <p class="text-gray-400 text-sm leading-relaxed">From first conversation to fully running &mdash; faster than you'd expect.</p>
+          </div>
+
+          <div class="doodle-wrap">
+            <svg id="storyDoodle" viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line id="desk" x1="10" y1="72" x2="70" y2="72" stroke="#D4BE54" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="60"/>
+              <rect id="phone" x="20" y="40" width="16" height="26" rx="3" stroke="#D4BE54" stroke-width="1.6" stroke-dasharray="130" stroke-dashoffset="130"/>
+              <rect id="phoneScreen" x="22.5" y="44" width="11" height="17" rx="1.5" fill="rgba(212,190,84,0.08)" opacity="0"/>
+              <path id="callWave1" d="M40 48 Q45 44 40 40" stroke="#D4BE54" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="10" stroke-dashoffset="10"/>
+              <path id="callWave2" d="M43 52 Q50 46 43 38" stroke="#D4BE54" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="14" stroke-dashoffset="14"/>
+              <path id="connectArrow" d="M 72 52 Q 90 44 104 52" stroke="#D4BE54" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="40" stroke-dashoffset="40"/>
+              <path id="arrowHead" d="M100 48 L104 52 L99 54" stroke="#D4BE54" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="12" stroke-dashoffset="12"/>
+              <path id="brainDoodle"
+                d="M148 30 C138 22 122 24 118 34 C114 28 106 28 106 36 C100 36 98 44 104 48 C102 54 106 62 114 62 C116 66 122 68 126 64 C128 68 136 68 138 64 C146 66 152 58 150 50 C156 48 158 40 152 36 C154 30 150 24 148 30Z"
+                stroke="#D4BE54" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                stroke-dasharray="220" stroke-dashoffset="220"
+                fill="rgba(212,190,84,0.04)"/>
+              <path id="brainSplit" d="M128 34 C126 44 126 52 128 62" stroke="#D4BE54" stroke-width="1" stroke-linecap="round" stroke-dasharray="30" stroke-dashoffset="30" opacity="0.4"/>
+              <g id="neuralSparks" opacity="0">
+                <circle cx="116" cy="42" r="1.5" fill="#D4BE54" opacity="0.8"/>
+                <circle cx="122" cy="36" r="1" fill="#D4BE54" opacity="0.6"/>
+                <circle cx="132" cy="40" r="2" fill="#D4BE54" opacity="0.9"/>
+                <circle cx="140" cy="36" r="1" fill="#D4BE54" opacity="0.7"/>
+                <circle cx="138" cy="50" r="1.5" fill="#D4BE54" opacity="0.8"/>
+                <circle cx="120" cy="52" r="1" fill="#D4BE54" opacity="0.6"/>
+              </g>
+              <path id="connectArrow2" d="M 156 55 Q 170 45 178 52" stroke="#D4BE54" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="35" stroke-dashoffset="35"/>
+              <path id="arrowHead2" d="M174 48 L178 52 L173 54" stroke="#D4BE54" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="12" stroke-dashoffset="12"/>
+              <rect id="screenBody" x="163" y="38" width="37" height="25" rx="2" stroke="#D4BE54" stroke-width="1.5" stroke-dasharray="124" stroke-dashoffset="124"/>
+              <rect id="screenStand" x="179" y="63" width="5" height="8" rx="1" stroke="#D4BE54" stroke-width="1.2" stroke-dasharray="30" stroke-dashoffset="30"/>
+              <line id="screenBase" x1="171" y1="71" x2="195" y2="71" stroke="#D4BE54" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="24" stroke-dashoffset="24"/>
+              <rect id="liveGlow" x="166" y="41" width="31" height="19" rx="1.5" fill="#20c55a" opacity="0"/>
+              <text id="liveText" x="181.5" y="53" text-anchor="middle" font-family="Inter,sans-serif" font-size="8.5" font-weight="800" fill="#ffffff" opacity="0">LIVE</text>
+              <text id="label1" x="28" y="84" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,0.3)" font-family="Inter,sans-serif" opacity="0">The Call</text>
+              <text id="label2" x="128" y="78" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,0.3)" font-family="Inter,sans-serif" opacity="0">Primora AI</text>
+              <text id="label3" x="181" y="84" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,0.3)" font-family="Inter,sans-serif" opacity="0">You're Live</text>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Why Choose -->
+  <section data-aos="fade-up" class="py-24">
+    <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-3xl md:text-4xl font-black text-center mb-14">
         Why Choose <span class="text-[#D4BE54]">Our</span> <span class="text-[#60A5FA]">Solution</span>?
       </h2>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5" id="benefitsGrid"></div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Final CTA -->
-    <section data-aos="zoom-in" class="text-center mb-28">
-      <div class="bg-[#232d4a]/80 backdrop-blur-xl border border-white/10 rounded-3xl
-                  max-w-2xl mx-auto px-12 py-16
-                  shadow-[0_0_80px_rgba(212,190,84,0.05)]">
-        <h2 class="text-3xl md:text-4xl font-black mb-5">
-          Ready to <span class="text-[#D4BE54]">Transform</span> Your <span class="text-[#60A5FA]">Workflow</span>?
-        </h2>
-        <p class="text-lg text-gray-400 mb-10 leading-relaxed">
-          Book a discovery call and see how we can help you
-          <span class="text-[#D4BE54] font-semibold">save time</span> and
-          <span class="text-[#60A5FA] font-semibold">cut costs</span>
-        </p>
-        <button onclick="handleBooking()"
-                class="bg-[#D4BE54] text-[#1b243b] font-bold text-lg px-10 py-5 rounded-full
-                       shadow-[0_0_40px_rgba(212,190,84,0.3)] hover:shadow-[0_0_60px_rgba(212,190,84,0.5)]
-                       hover:-translate-y-1 transition-all duration-300">
-          Schedule Your Free 45-Min Discovery Call
-        </button>
-        <p class="mt-4 text-sm text-gray-500">No obligation &middot; Free call &middot; UK-based</p>
-      </div>
-    </section>
-
-  </main>
+  <!-- CTA -->
+  <div class="section-band py-24">
+    <div class="max-w-6xl mx-auto px-6">
+      <section data-aos="zoom-in" class="text-center">
+        <div class="bg-[#232d4a]/80 backdrop-blur-xl border border-white/10 rounded-3xl
+                    max-w-2xl mx-auto px-12 py-16
+                    shadow-[0_0_80px_rgba(212,190,84,0.05)]">
+          <h2 class="text-3xl md:text-4xl font-black mb-5">
+            Ready to <span class="text-[#D4BE54]">Transform</span> Your <span class="text-[#60A5FA]">Workflow</span>?
+          </h2>
+          <p class="text-lg text-gray-400 mb-10 leading-relaxed">
+            Book a discovery call and see how we can help you
+            <span class="text-[#D4BE54] font-semibold">save time</span> and
+            <span class="text-[#60A5FA] font-semibold">cut costs</span>
+          </p>
+          <button onclick="handleBooking()"
+                  class="bg-[#D4BE54] text-[#1b243b] font-bold text-lg px-10 py-5 rounded-full
+                         shadow-[0_0_40px_rgba(212,190,84,0.3)] hover:shadow-[0_0_60px_rgba(212,190,84,0.5)]
+                         hover:-translate-y-1 transition-all duration-300">
+            Schedule Your Free 45-Min Discovery Call
+          </button>
+          <p class="mt-4 text-sm text-gray-500">No obligation &middot; Free call &middot; UK-based</p>
+        </div>
+      </section>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer class="border-t border-white/10 py-6 text-center text-gray-500 text-sm">

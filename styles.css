@@ -1,10 +1,141 @@
-/* styles.css is now minimal — Tailwind handles all layout/spacing/colors */
-/* Original animated background is in index.html <style> block */
-/* This file kept for any future custom overrides */
+/* ── Base ── */
+body { font-family: 'Inter', sans-serif; }
+h1, h2, h3 { font-family: 'Syne', sans-serif; }
+.typed-cursor { color: #D4BE54; }
 
-:root {
-    --gold: #D4BE54;
-    --blue: #60A5FA;
-    --navy: #1b243b;
-    --navy-light: #232d4a;
+/* ── Animated background ── */
+.animated-bg {
+  background-color: #1b243b;
+  background-image: linear-gradient(45deg,
+    transparent 20%, rgba(212,190,84,0.03) 20%,
+    rgba(212,190,84,0.03) 21%, transparent 21%,
+    transparent 40%, rgba(212,190,84,0.03) 40%,
+    rgba(212,190,84,0.03) 41%, transparent 41%
+  );
+  background-size: 300px 300px;
+  animation: moveBackground 8s linear infinite;
+}
+@keyframes moveBackground {
+  0%   { background-position: 0 0; }
+  100% { background-position: 300px 300px; }
+}
+
+/* ── Hero glow ── */
+.hero-glow { position: relative; }
+.hero-glow::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 300px;
+  background: radial-gradient(ellipse, rgba(212,190,84,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── Section band ── */
+.section-band {
+  background: rgba(0,0,0,0.15);
+  backdrop-filter: blur(2px);
+}
+
+/* ── Bento grid ── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+}
+
+.bento-card {
+  background: rgba(35,45,74,0.8);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  backdrop-filter: blur(12px);
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+.bento-card:hover {
+  border-color: rgba(212,190,84,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(212,190,84,0.08);
+}
+
+.bento-card-wide {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 40px 44px;
+  min-height: 200px;
+}
+.bento-card-wide .card-text { flex: 1; }
+
+.bento-card-half {
+  padding: 34px 30px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 210px;
+}
+
+/* ── Bento tag pill ── */
+.bento-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #D4BE54;
+  background: rgba(212,190,84,0.1);
+  border: 1px solid rgba(212,190,84,0.25);
+  border-radius: 20px;
+  padding: 3px 10px;
+  margin-bottom: 12px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── Checklist ── */
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+  transition: color 0.4s ease;
+  font-family: 'Inter', sans-serif;
+}
+.check-item.done { color: rgba(255,255,255,0.7); }
+.check-box {
+  width: 18px; height: 18px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+.check-item.done .check-box {
+  background: rgba(212,190,84,0.15);
+  border-color: #D4BE54;
+  color: #D4BE54;
+}
+
+/* ── Doodle SVG ── */
+.doodle-wrap {
+  margin-top: 18px;
+  width: 100%;
+  padding: 0 2px;
+}
+.doodle-wrap svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .bento-grid { grid-template-columns: 1fr; }
+  .bento-card-wide { flex-direction: column; padding: 28px 24px; }
+  .bento-card-wide canvas { width: 100% !important; height: 140px !important; }
 }
