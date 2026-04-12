@@ -46,23 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── Neural brain canvas (mobile-aware) ──
+// ── Neural brain canvas ──
+// The brain is always drawn in a fixed 220×130 logical coordinate space.
+// CSS (via .canvas-wrap) handles visual scaling — no ctx.scale() needed.
 const canvas = document.getElementById('nodeCanvas');
 const ctx = canvas.getContext('2d');
 
-// Detect mobile once
-const isMobile = window.innerWidth < 640;
+// Fix the internal resolution to match the brain path coordinates
+const BRAIN_W = 220, BRAIN_H = 130;
+canvas.width  = BRAIN_W;
+canvas.height = BRAIN_H;
 
-// Resize canvas to fill its wrapper
-function resizeCanvas() {
-  const wrap = canvas.parentElement;
-  const w = wrap.clientWidth || 220;
-  const h = isMobile ? 130 : 150;
-  canvas.width = w;
-  canvas.height = h;
-}
-resizeCanvas();
-window.addEventListener('resize', () => { resizeCanvas(); buildNodes(); });
+const isMobile = window.innerWidth < 640;
 
 const BRAIN_PATH = (function() {
   const p = new Path2D();
@@ -79,8 +74,9 @@ const BRAIN_PATH = (function() {
   return p;
 })();
 
+// Offscreen canvas for hit-testing — same fixed size
 const _offscreen = document.createElement('canvas');
-_offscreen.width = 220; _offscreen.height = 150;
+_offscreen.width = BRAIN_W; _offscreen.height = BRAIN_H;
 const _octx = _offscreen.getContext('2d');
 function pointInBrain(x, y) {
   return _octx.isPointInPath(BRAIN_PATH, x, y);
@@ -94,18 +90,23 @@ const _observer = new IntersectionObserver(entries => {
 _observer.observe(canvas);
 canvas.style.willChange = 'transform';
 
+const NODE_COUNT = isMobile ? 16 : 28;
 let nodes = [];
 function buildNodes() {
   nodes = [];
-  const count = isMobile ? 16 : 28;
   let attempts = 0;
-  while (nodes.length < count && attempts < 2000) {
+  while (nodes.length < NODE_COUNT && attempts < 3000) {
     const x = 20 + Math.random() * 180;
     const y = 15 + Math.random() * 110;
     if (pointInBrain(x, y)) {
-      nodes.push({ x, y, vx: (Math.random()-0.5)*0.25, vy: (Math.random()-0.5)*0.25,
-                   r: Math.random()*2+1.5, pulse: Math.random()*Math.PI*2,
-                   pulseSpeed: 0.01+Math.random()*0.02 });
+      nodes.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 2 + 1.5,
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.01 + Math.random() * 0.02
+      });
     }
     attempts++;
   }
@@ -113,10 +114,12 @@ function buildNodes() {
 buildNodes();
 
 function drawBrainOutline() {
+  // Outline drawn in the same 220×130 space — no scale transform
   ctx.save();
   ctx.strokeStyle = 'rgba(96,165,250,0.5)';
   ctx.lineWidth = 1.5;
   ctx.stroke(BRAIN_PATH);
+  // Centre dividing line
   ctx.beginPath();
   ctx.moveTo(110, 48);
   ctx.bezierCurveTo(106, 70, 106, 90, 110, 112);
@@ -128,42 +131,56 @@ function drawBrainOutline() {
 
 function drawBrain() {
   if (!_animating) return;
-  const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  // Scale brain to fill canvas
-  const scaleX = W / 220, scaleY = H / 130;
+
+  ctx.clearRect(0, 0, BRAIN_W, BRAIN_H);
+
+  // ─ clipped interior (nodes + connections) ─
   ctx.save();
-  ctx.scale(scaleX, scaleY);
   ctx.clip(BRAIN_PATH);
   ctx.fillStyle = 'rgba(96,165,250,0.03)';
   ctx.fill(BRAIN_PATH);
+
   for (let i = 0; i < nodes.length; i++) {
-    for (let j = i+1; j < nodes.length; j++) {
-      const dx = nodes[i].x-nodes[j].x, dy = nodes[i].y-nodes[j].y;
-      const dist = Math.sqrt(dx*dx+dy*dy);
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 55) {
         ctx.beginPath();
         ctx.moveTo(nodes[i].x, nodes[i].y);
         ctx.lineTo(nodes[j].x, nodes[j].y);
-        ctx.strokeStyle = `rgba(96,165,250,${(1-dist/55)*0.3})`;
+        ctx.strokeStyle = `rgba(96,165,250,${(1 - dist / 55) * 0.3})`;
         ctx.lineWidth = 0.8;
         ctx.stroke();
       }
     }
   }
+
   nodes.forEach(n => {
     n.pulse += n.pulseSpeed;
-    const glow = 0.5+0.5*Math.sin(n.pulse), alpha = 0.4+0.5*glow, radius = n.r+glow*1.2;
-    const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, radius*3);
-    grad.addColorStop(0, `rgba(212,190,84,${alpha*0.6})`);
+    const glow   = 0.5 + 0.5 * Math.sin(n.pulse);
+    const alpha  = 0.4 + 0.5 * glow;
+    const radius = n.r + glow * 1.2;
+
+    const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, radius * 3);
+    grad.addColorStop(0, `rgba(212,190,84,${alpha * 0.6})`);
     grad.addColorStop(1, 'rgba(212,190,84,0)');
-    ctx.beginPath(); ctx.arc(n.x, n.y, radius*3, 0, Math.PI*2); ctx.fillStyle = grad; ctx.fill();
-    ctx.beginPath(); ctx.arc(n.x, n.y, radius, 0, Math.PI*2); ctx.fillStyle = `rgba(212,190,84,${alpha})`; ctx.fill();
-    const nx = n.x+n.vx, ny = n.y+n.vy;
-    if (pointInBrain(nx, ny)) { n.x = nx; n.y = ny; } else { n.vx *= -1; n.vy *= -1; }
+    ctx.beginPath(); ctx.arc(n.x, n.y, radius * 3, 0, Math.PI * 2);
+    ctx.fillStyle = grad; ctx.fill();
+
+    ctx.beginPath(); ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(212,190,84,${alpha})`; ctx.fill();
+
+    const nx = n.x + n.vx, ny = n.y + n.vy;
+    if (pointInBrain(nx, ny)) { n.x = nx; n.y = ny; }
+    else { n.vx *= -1; n.vy *= -1; }
   });
-  ctx.restore();
+
+  ctx.restore(); // end clip
+
+  // Outline drawn OUTSIDE the clip so it's always fully visible
   drawBrainOutline();
+
   requestAnimationFrame(drawBrain);
 }
 drawBrain();
@@ -194,38 +211,40 @@ function playStory() {
   });
   tl.set(['#label1','#label2','#label3','#neuralSparks','#phoneScreen','#liveGlow','#liveText'], { opacity: 0 });
   tl
-    .to('#desk',         { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' })
-    .to('#phone',        { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' }, '-=0.1')
-    .to('#phoneScreen',  { opacity: 1, duration: 0.2 }, '-=0.05')
-    .to('#callWave1',    { strokeDashoffset: 0, duration: 0.25, ease: 'power1.out' })
-    .to('#callWave2',    { strokeDashoffset: 0, duration: 0.25, ease: 'power1.out' }, '-=0.1')
-    .to('#label1',       { opacity: 1, duration: 0.3 })
-    .to('#connectArrow', { strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut' })
-    .to('#arrowHead',    { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.1')
-    .to('#brainDoodle',  { strokeDashoffset: 0, duration: 1.0,  ease: 'power1.inOut' })
-    .to('#brainSplit',   { strokeDashoffset: 0, duration: 0.4,  ease: 'power1.out' }, '-=0.35')
-    .to('#label2',       { opacity: 1, duration: 0.3 })
-    .to('#neuralSparks', { opacity: 1, duration: 0.35 })
+    .to('#desk',          { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' })
+    .to('#phone',         { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' }, '-=0.1')
+    .to('#phoneScreen',   { opacity: 1, duration: 0.2 }, '-=0.05')
+    .to('#callWave1',     { strokeDashoffset: 0, duration: 0.25, ease: 'power1.out' })
+    .to('#callWave2',     { strokeDashoffset: 0, duration: 0.25, ease: 'power1.out' }, '-=0.1')
+    .to('#label1',        { opacity: 1, duration: 0.3 })
+    .to('#connectArrow',  { strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut' })
+    .to('#arrowHead',     { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.1')
+    .to('#brainDoodle',   { strokeDashoffset: 0, duration: 1.0,  ease: 'power1.inOut' })
+    .to('#brainSplit',    { strokeDashoffset: 0, duration: 0.4,  ease: 'power1.out' }, '-=0.35')
+    .to('#label2',        { opacity: 1, duration: 0.3 })
+    .to('#neuralSparks',  { opacity: 1, duration: 0.35 })
     .to('#neuralSparks circle', { scale: 1.5, transformOrigin: 'center', stagger: 0.08, duration: 0.25, ease: 'power2.out', yoyo: true, repeat: 1 })
-    .to('#connectArrow2',{ strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut' })
-    .to('#arrowHead2',   { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.1')
-    .to('#screenBody',   { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out' })
-    .to('#screenStand',  { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.05')
-    .to('#screenBase',   { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.05')
-    .to('#liveGlow',     { opacity: 1, duration: 0.2 })
-    .to('#liveText',     { opacity: 1, duration: 0.2 }, '-=0.05')
-    .to('#label3',       { opacity: 1, duration: 0.3 });
+    .to('#connectArrow2', { strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut' })
+    .to('#arrowHead2',    { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.1')
+    .to('#screenBody',    { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out' })
+    .to('#screenStand',   { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.05')
+    .to('#screenBase',    { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.05')
+    .to('#liveGlow',      { opacity: 1, duration: 0.2 })
+    .to('#liveText',      { opacity: 1, duration: 0.2 }, '-=0.05')
+    .to('#label3',        { opacity: 1, duration: 0.3 });
 }
 window.addEventListener('load', () => gsap.delayedCall(0.5, playStory));
 
-// ── Smooth scroll with fixed nav offset ──
+// ── Smooth scroll — uses offsetTop for accuracy on mobile ──
 document.addEventListener('click', e => {
   const link = e.target.closest('a[href^="#"]');
   if (!link) return;
   e.preventDefault();
-  const target = document.querySelector(link.getAttribute('href'));
+  const targetId = link.getAttribute('href').slice(1);
+  const target = document.getElementById(targetId);
   if (!target) return;
   const navHeight = document.querySelector('header').offsetHeight;
-  const top = target.getBoundingClientRect().top + window.scrollY - navHeight - 24;
+  // offsetTop is reliable regardless of current scroll position
+  const top = target.offsetTop - navHeight - 20;
   window.scrollTo({ top, behavior: 'smooth' });
 });

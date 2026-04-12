@@ -90,7 +90,7 @@ html, body {
   font-family: 'Inter', sans-serif;
 }
 
-/* ── Canvas wrapper — fluid on all screens ── */
+/* ── Canvas wrapper — CSS scales the fixed-res canvas to fill space ── */
 .canvas-wrap {
   flex-shrink: 0;
   width: 220px;
@@ -101,9 +101,10 @@ html, body {
 }
 .canvas-wrap canvas {
   display: block;
-  width: 100%;
-  height: auto;
+  width: 100%;    /* CSS scale: fills wrapper visually */
+  height: auto;   /* maintains 220:130 aspect ratio     */
   border-radius: 12px;
+  image-rendering: crisp-edges;
 }
 
 /* ── Checklist ── */
@@ -147,23 +148,30 @@ html, body {
 /* ── Mobile ── */
 @media (max-width: 640px) {
   .bento-grid { grid-template-columns: 1fr; }
+
   .bento-card-wide {
     flex-direction: column;
     align-items: flex-start;
     padding: 26px 22px;
     gap: 20px;
   }
+
+  /* Canvas fills full card width on mobile — CSS scale only, no JS resize */
   .canvas-wrap {
     width: 100%;
-    height: 130px;
   }
-  .canvas-wrap canvas {
-    height: 130px;
-    width: 100% !important;
-  }
+
   .bento-card-half {
     padding: 26px 22px 22px;
     min-height: unset;
+  }
+
+  /* Card 3 doodle: taller on mobile so animation is clearly visible */
+  .doodle-wrap {
+    margin-top: 16px;
+  }
+  .doodle-wrap svg {
+    min-height: 100px;
   }
 
   /* ── Card body text: larger + bolder on mobile ── */
@@ -175,12 +183,12 @@ html, body {
     line-height: 1.65 !important;
   }
 
-  /* ── Card headings: ensure visibility ── */
+  /* Card headings visible */
   .bento-card h3 {
     font-size: 18px !important;
   }
 
-  /* ── Checklist items: more readable on mobile ── */
+  /* Checklist items readable */
   .check-item {
     font-size: 13px;
     font-weight: 600;
@@ -190,26 +198,18 @@ html, body {
     color: rgba(255,255,255,0.85);
   }
 
-  /* ── Stats section grey text ── */
+  /* Stats section grey body text */
   .rounded-3xl p.text-sm {
     font-size: 13px !important;
     font-weight: 600 !important;
     color: rgba(255,255,255,0.8) !important;
   }
 
-  /* ── Why choose grey text ── */
+  /* Why Choose grey text */
   .rounded-2xl p.text-sm {
     font-size: 13px !important;
     font-weight: 600 !important;
     color: rgba(255,255,255,0.85) !important;
-  }
-
-  /* ── Doodle card: taller SVG on mobile so it's not cramped ── */
-  .doodle-wrap {
-    margin-top: 14px;
-  }
-  .doodle-wrap svg {
-    min-height: 80px;
   }
 
   /* Prevent hero description box from overflowing */
