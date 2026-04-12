@@ -46,65 +46,89 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── Neural brain canvas ──
-// The brain is always drawn in a fixed 220×130 logical coordinate space.
-// CSS (via .canvas-wrap) handles visual scaling — no ctx.scale() needed.
+// ── Neural brain canvas — HiDPI / retina aware ──
+//
+// Strategy:
+//   - Logical drawing space is always 220×130 (brain path coordinates).
+//   - Canvas backing store = cssWidth × dpr  by  cssHeight × dpr  (sharp pixels).
+//   - ctx.scale(dpr, dpr) maps logical coords to physical pixels each frame.
+//   - CSS width:100% / height:auto lets the wrapper control display size.
+//   - pointInBrain uses a separate 220×130 offscreen ctx (no dpr) for hit-testing.
+
 const canvas = document.getElementById('nodeCanvas');
-const ctx = canvas.getContext('2d');
-
-// Fix the internal resolution to match the brain path coordinates
-const BRAIN_W = 220, BRAIN_H = 130;
-canvas.width  = BRAIN_W;
-canvas.height = BRAIN_H;
-
+const ctx    = canvas.getContext('2d');
+const wrap   = canvas.parentElement;
+const dpr    = window.devicePixelRatio || 1;
 const isMobile = window.innerWidth < 640;
 
-const BRAIN_PATH = (function() {
+// Logical brain dimensions (match the Path2D coordinates below)
+const LW = 220, LH = 130;
+
+function setCanvasResolution() {
+  // Physical pixels = CSS pixels × dpr
+  const cssW = wrap.clientWidth  || LW;
+  const cssH = Math.round(cssW * LH / LW); // maintain aspect ratio
+  canvas.width  = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  // CSS size stays at the layout size
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+}
+setCanvasResolution();
+
+window.addEventListener('resize', () => {
+  setCanvasResolution();
+  buildNodes();
+});
+
+// ── Brain path (logical 220×130 space) ──
+const BRAIN_PATH = (function () {
   const p = new Path2D();
   p.moveTo(110, 18);
-  p.bezierCurveTo(70, 10, 30, 20, 22, 50);
-  p.bezierCurveTo(14, 75, 28, 100, 50, 110);
-  p.bezierCurveTo(65, 118, 80, 115, 90, 108);
-  p.bezierCurveTo(96, 120, 104, 120, 110, 120);
+  p.bezierCurveTo(70,  10, 30,  20,  22,  50);
+  p.bezierCurveTo(14,  75, 28,  100, 50,  110);
+  p.bezierCurveTo(65,  118, 80, 115, 90,  108);
+  p.bezierCurveTo(96,  120, 104, 120, 110, 120);
   p.bezierCurveTo(116, 120, 124, 120, 130, 108);
   p.bezierCurveTo(140, 115, 155, 118, 170, 110);
-  p.bezierCurveTo(192, 100, 206, 75, 198, 50);
-  p.bezierCurveTo(190, 20, 150, 10, 110, 18);
+  p.bezierCurveTo(192, 100, 206, 75,  198, 50);
+  p.bezierCurveTo(190, 20,  150, 10,  110, 18);
   p.closePath();
   return p;
 })();
 
-// Offscreen canvas for hit-testing — same fixed size
-const _offscreen = document.createElement('canvas');
-_offscreen.width = BRAIN_W; _offscreen.height = BRAIN_H;
-const _octx = _offscreen.getContext('2d');
+// Offscreen hit-test canvas — always 220×130 (no dpr scaling needed)
+const _off  = document.createElement('canvas');
+_off.width  = LW;
+_off.height = LH;
+const _octx = _off.getContext('2d');
 function pointInBrain(x, y) {
   return _octx.isPointInPath(BRAIN_PATH, x, y);
 }
 
+// ── Visibility observer (pause when off-screen) ──
 let _animating = true;
-const _observer = new IntersectionObserver(entries => {
+new IntersectionObserver(entries => {
   _animating = entries[0].isIntersecting;
   if (_animating) requestAnimationFrame(drawBrain);
-}, { threshold: 0 });
-_observer.observe(canvas);
-canvas.style.willChange = 'transform';
+}, { threshold: 0 }).observe(canvas);
 
-const NODE_COUNT = isMobile ? 16 : 28;
+// ── Nodes ──
+const NODE_COUNT = isMobile ? 20 : 28;
 let nodes = [];
 function buildNodes() {
   nodes = [];
   let attempts = 0;
   while (nodes.length < NODE_COUNT && attempts < 3000) {
-    const x = 20 + Math.random() * 180;
-    const y = 15 + Math.random() * 110;
+    const x = 22 + Math.random() * 176;
+    const y = 18 + Math.random() * 102;
     if (pointInBrain(x, y)) {
       nodes.push({
         x, y,
         vx: (Math.random() - 0.5) * 0.3,
         vy: (Math.random() - 0.5) * 0.3,
-        r: Math.random() * 2 + 1.5,
-        pulse: Math.random() * Math.PI * 2,
+        r:  Math.random() * 2 + 1.5,
+        pulse:      Math.random() * Math.PI * 2,
         pulseSpeed: 0.01 + Math.random() * 0.02
       });
     }
@@ -113,37 +137,34 @@ function buildNodes() {
 }
 buildNodes();
 
-function drawBrainOutline() {
-  // Outline drawn in the same 220×130 space — no scale transform
-  ctx.save();
-  ctx.strokeStyle = 'rgba(96,165,250,0.5)';
-  ctx.lineWidth = 1.5;
-  ctx.stroke(BRAIN_PATH);
-  // Centre dividing line
-  ctx.beginPath();
-  ctx.moveTo(110, 48);
-  ctx.bezierCurveTo(106, 70, 106, 90, 110, 112);
-  ctx.strokeStyle = 'rgba(96,165,250,0.3)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.restore();
-}
-
+// ── Draw ──
 function drawBrain() {
   if (!_animating) return;
 
-  ctx.clearRect(0, 0, BRAIN_W, BRAIN_H);
+  const pw = canvas.width, ph = canvas.height; // physical pixels
 
-  // ─ clipped interior (nodes + connections) ─
+  ctx.clearRect(0, 0, pw, ph);
+
+  // Scale once: logical coords → physical pixels
+  ctx.save();
+  ctx.scale(dpr * pw / (LW * dpr), dpr * ph / (LH * dpr));
+  // Simplifies to: ctx.scale(pw/LW, ph/LH) which preserves aspect ratio
+  // Re-express cleanly:
+  ctx.restore();
+  ctx.save();
+  const sx = pw / LW, sy = ph / LH;
+  ctx.scale(sx, sy);
+
+  // ─ clipped interior ─
   ctx.save();
   ctx.clip(BRAIN_PATH);
   ctx.fillStyle = 'rgba(96,165,250,0.03)';
   ctx.fill(BRAIN_PATH);
 
+  // Connections
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
-      const dx = nodes[i].x - nodes[j].x;
-      const dy = nodes[i].y - nodes[j].y;
+      const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 55) {
         ctx.beginPath();
@@ -156,6 +177,7 @@ function drawBrain() {
     }
   }
 
+  // Nodes
   nodes.forEach(n => {
     n.pulse += n.pulseSpeed;
     const glow   = 0.5 + 0.5 * Math.sin(n.pulse);
@@ -167,7 +189,6 @@ function drawBrain() {
     grad.addColorStop(1, 'rgba(212,190,84,0)');
     ctx.beginPath(); ctx.arc(n.x, n.y, radius * 3, 0, Math.PI * 2);
     ctx.fillStyle = grad; ctx.fill();
-
     ctx.beginPath(); ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(212,190,84,${alpha})`; ctx.fill();
 
@@ -178,8 +199,18 @@ function drawBrain() {
 
   ctx.restore(); // end clip
 
-  // Outline drawn OUTSIDE the clip so it's always fully visible
-  drawBrainOutline();
+  // Brain outline + dividing line (inside scale, outside clip)
+  ctx.strokeStyle = 'rgba(96,165,250,0.5)';
+  ctx.lineWidth   = 1.5;
+  ctx.stroke(BRAIN_PATH);
+  ctx.beginPath();
+  ctx.moveTo(110, 48);
+  ctx.bezierCurveTo(106, 70, 106, 90, 110, 112);
+  ctx.strokeStyle = 'rgba(96,165,250,0.3)';
+  ctx.lineWidth   = 1;
+  ctx.stroke();
+
+  ctx.restore(); // end scale
 
   requestAnimationFrame(drawBrain);
 }
@@ -235,16 +266,13 @@ function playStory() {
 }
 window.addEventListener('load', () => gsap.delayedCall(0.5, playStory));
 
-// ── Smooth scroll — uses offsetTop for accuracy on mobile ──
+// ── Smooth scroll — offsetTop for reliable mobile positioning ──
 document.addEventListener('click', e => {
   const link = e.target.closest('a[href^="#"]');
   if (!link) return;
   e.preventDefault();
-  const targetId = link.getAttribute('href').slice(1);
-  const target = document.getElementById(targetId);
+  const target = document.getElementById(link.getAttribute('href').slice(1));
   if (!target) return;
   const navHeight = document.querySelector('header').offsetHeight;
-  // offsetTop is reliable regardless of current scroll position
-  const top = target.offsetTop - navHeight - 20;
-  window.scrollTo({ top, behavior: 'smooth' });
+  window.scrollTo({ top: target.offsetTop - navHeight - 20, behavior: 'smooth' });
 });
