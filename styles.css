@@ -11,6 +11,7 @@
   );
   background-size: 400% 400%;
   animation: bgShift 14s ease infinite;
+  position: relative;
 }
 @keyframes bgShift {
   0%   { background-position: 0% 50%; }
@@ -19,6 +20,17 @@
   75%  { background-position: 50% 100%; }
   100% { background-position: 0% 50%; }
 }
+
+/* ── Background lines canvas ── */
+#bgLines {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.18;
+}
+body > *:not(#bgLines) { position: relative; z-index: 1; }
 
 /* ── Hero glow ── */
 .hero-glow::before {
