@@ -1,12 +1,23 @@
 /* ── Animated background ── */
 .animated-bg {
-  background: linear-gradient(135deg, #1b243b 0%, #232d4a 50%, #1b243b 100%);
+  background: linear-gradient(135deg,
+    #1b243b 0%,
+    #1e2d47 20%,
+    #232d4a 35%,
+    #1a2a42 50%,
+    #1b243b 65%,
+    #202c45 80%,
+    #1b243b 100%
+  );
   background-size: 400% 400%;
-  animation: bgShift 12s ease infinite;
+  animation: bgShift 14s ease infinite;
 }
 @keyframes bgShift {
-  0%,100% { background-position: 0% 50%; }
-  50%      { background-position: 100% 50%; }
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 50% 0%; }
+  50%  { background-position: 100% 50%; }
+  75%  { background-position: 50% 100%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* ── Hero glow ── */

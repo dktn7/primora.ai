@@ -96,11 +96,9 @@ while (nodes.length < 28 && attempts < 2000) {
 
 function drawBrainOutline() {
   ctx.save();
-  // Blue outline for brain structure
   ctx.strokeStyle = 'rgba(96,165,250,0.5)';
   ctx.lineWidth = 1.5;
   ctx.stroke(BRAIN_PATH);
-  // Blue centre dividing line
   ctx.beginPath();
   ctx.moveTo(110, 48);
   ctx.bezierCurveTo(106, 70, 106, 90, 110, 112);
@@ -115,10 +113,8 @@ function drawBrain() {
   ctx.clearRect(0, 0, W, H);
   ctx.save();
   ctx.clip(BRAIN_PATH);
-  // Subtle blue fill tint
   ctx.fillStyle = 'rgba(96,165,250,0.03)';
   ctx.fill(BRAIN_PATH);
-  // Blue connection lines
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i+1; j < nodes.length; j++) {
       const dx = nodes[i].x-nodes[j].x, dy = nodes[i].y-nodes[j].y;
@@ -133,7 +129,6 @@ function drawBrain() {
       }
     }
   }
-  // Gold nodes with gold glow
   nodes.forEach(n => {
     n.pulse += n.pulseSpeed;
     const glow = 0.5+0.5*Math.sin(n.pulse), alpha = 0.4+0.5*glow, radius = n.r+glow*1.2;
@@ -170,11 +165,14 @@ tickNext();
 // ── GSAP doodle story ──
 function playStory() {
   const tl = gsap.timeline({ onComplete: () => gsap.delayedCall(1.5, playStory) });
-  tl.set(['#desk','#phone','#phoneScreen','#callWave1','#callWave2','#connectArrow','#arrowHead','#brainDoodle','#brainSplit','#connectArrow2','#arrowHead2','#screenBody','#screenStand','#screenBase','#liveGlow','#liveText'], {
+  tl.set(['#desk','#phone','#phoneScreen','#callWave1','#callWave2','#connectArrow','#arrowHead',
+          '#brainDoodle','#brainSplit','#connectArrow2','#arrowHead2',
+          '#screenBody','#screenStand','#screenBase','#liveGlow','#liveText'], {
     strokeDashoffset: (i, el) => el.getTotalLength ? el.getTotalLength() : parseFloat(el.getAttribute('stroke-dasharray'))
   });
   tl.set(['#label1','#label2','#label3','#neuralSparks'], { opacity: 0 });
   tl.set(['#phoneScreen','#liveGlow','#liveText'], { opacity: 0 });
+  tl.set('#screenBody', { opacity: 1 });
   tl
     .to('#desk',         { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' })
     .to('#phone',        { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' }, '-=0.1')
@@ -194,6 +192,8 @@ function playStory() {
     .to('#screenBody',   { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out' })
     .to('#screenStand',  { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.05')
     .to('#screenBase',   { strokeDashoffset: 0, duration: 0.2,  ease: 'power2.out' }, '-=0.05')
+    // hide the blue screen outline just before LIVE appears
+    .to('#screenBody',   { opacity: 0, duration: 0.15, ease: 'none' })
     .to('#liveGlow',     { opacity: 1, duration: 0.2 }, '-=0.05')
     .to('#liveText',     { opacity: 1, duration: 0.2 }, '-=0.05')
     .to('#label3',       { opacity: 1, duration: 0.3 });
