@@ -11,6 +11,10 @@
   animation: moveBackground 8s linear infinite;
   overflow-x: hidden;
 }
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
 @keyframes moveBackground {
   0%   { background-position: 0 0; }
   100% { background-position: 0 300px; }
@@ -63,7 +67,7 @@
   padding: 40px 44px;
   min-height: 200px;
 }
-.bento-card-wide .card-text { flex: 1; }
+.bento-card-wide .card-text { flex: 1; min-width: 0; }
 .bento-card-half {
   padding: 34px 30px 30px;
   display: flex;
@@ -84,6 +88,22 @@
   padding: 3px 10px;
   margin-bottom: 12px;
   font-family: 'Inter', sans-serif;
+}
+
+/* ── Canvas wrapper — fluid on all screens ── */
+.canvas-wrap {
+  flex-shrink: 0;
+  width: 220px;
+  max-width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  line-height: 0;
+}
+.canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
 }
 
 /* ── Checklist ── */
@@ -124,9 +144,27 @@
   overflow: visible;
 }
 
-/* ── Responsive ── */
+/* ── Mobile ── */
 @media (max-width: 640px) {
   .bento-grid { grid-template-columns: 1fr; }
-  .bento-card-wide { flex-direction: column; padding: 28px 24px; }
-  .bento-card-wide canvas { width: 100% !important; height: 140px !important; }
+  .bento-card-wide {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 26px 22px;
+    gap: 20px;
+  }
+  .canvas-wrap {
+    width: 100%;
+    height: 130px;
+  }
+  .canvas-wrap canvas {
+    height: 130px;
+    width: 100% !important;
+  }
+  .bento-card-half {
+    padding: 26px 22px 22px;
+    min-height: unset;
+  }
+  /* Prevent hero description box from overflowing */
+  section.hero-glow .max-w-6xl { overflow: hidden; }
 }

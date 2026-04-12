@@ -50,7 +50,7 @@
   </header>
 
   <!-- Hero -->
-  <section class="text-center py-28 hero-glow relative">
+  <section class="text-center py-28 hero-glow relative overflow-hidden">
     <div class="max-w-6xl mx-auto px-6">
       <h1 data-aos="fade-up" data-aos-duration="900"
           class="text-5xl md:text-7xl font-black tracking-tight leading-tight mb-8">
@@ -96,8 +96,9 @@
             <h3 class="text-xl font-black mb-2">Your Workflow, <span class="text-[#D4BE54]">On Autopilot</span>.</h3>
             <p class="text-sm leading-relaxed">Stop losing hours to tasks that should never need a human. Our smart AI layer handles it.</p>
           </div>
-          <canvas id="nodeCanvas" width="220" height="150"
-                  style="width:220px;height:150px;flex-shrink:0;border-radius:12px;opacity:0.95;"></canvas>
+          <div class="canvas-wrap">
+            <canvas id="nodeCanvas" width="220" height="150"></canvas>
+          </div>
         </div>
         <!-- Card 2: Checklist ticker -->
         <div class="bento-card bento-card-half" data-aos="fade-up" data-aos-delay="150">

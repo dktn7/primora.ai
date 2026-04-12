@@ -46,10 +46,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── Neural brain canvas ──
+// ── Neural brain canvas (mobile-aware) ──
 const canvas = document.getElementById('nodeCanvas');
 const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
+
+// Detect mobile once
+const isMobile = window.innerWidth < 640;
+
+// Resize canvas to fill its wrapper
+function resizeCanvas() {
+  const wrap = canvas.parentElement;
+  const w = wrap.clientWidth || 220;
+  const h = isMobile ? 130 : 150;
+  canvas.width = w;
+  canvas.height = h;
+}
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); buildNodes(); });
 
 const BRAIN_PATH = (function() {
   const p = new Path2D();
@@ -67,9 +80,8 @@ const BRAIN_PATH = (function() {
 })();
 
 const _offscreen = document.createElement('canvas');
-_offscreen.width = W; _offscreen.height = H;
+_offscreen.width = 220; _offscreen.height = 150;
 const _octx = _offscreen.getContext('2d');
-
 function pointInBrain(x, y) {
   return _octx.isPointInPath(BRAIN_PATH, x, y);
 }
@@ -80,19 +92,25 @@ const _observer = new IntersectionObserver(entries => {
   if (_animating) requestAnimationFrame(drawBrain);
 }, { threshold: 0 });
 _observer.observe(canvas);
-
 canvas.style.willChange = 'transform';
 
-const nodes = [];
-let attempts = 0;
-while (nodes.length < 28 && attempts < 2000) {
-  const x = 20 + Math.random() * 180;
-  const y = 15 + Math.random() * 110;
-  if (pointInBrain(x, y)) {
-    nodes.push({ x, y, vx: (Math.random()-0.5)*0.25, vy: (Math.random()-0.5)*0.25, r: Math.random()*2+1.5, pulse: Math.random()*Math.PI*2, pulseSpeed: 0.01+Math.random()*0.02 });
+let nodes = [];
+function buildNodes() {
+  nodes = [];
+  const count = isMobile ? 16 : 28;
+  let attempts = 0;
+  while (nodes.length < count && attempts < 2000) {
+    const x = 20 + Math.random() * 180;
+    const y = 15 + Math.random() * 110;
+    if (pointInBrain(x, y)) {
+      nodes.push({ x, y, vx: (Math.random()-0.5)*0.25, vy: (Math.random()-0.5)*0.25,
+                   r: Math.random()*2+1.5, pulse: Math.random()*Math.PI*2,
+                   pulseSpeed: 0.01+Math.random()*0.02 });
+    }
+    attempts++;
   }
-  attempts++;
 }
+buildNodes();
 
 function drawBrainOutline() {
   ctx.save();
@@ -110,8 +128,12 @@ function drawBrainOutline() {
 
 function drawBrain() {
   if (!_animating) return;
+  const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
+  // Scale brain to fill canvas
+  const scaleX = W / 220, scaleY = H / 130;
   ctx.save();
+  ctx.scale(scaleX, scaleY);
   ctx.clip(BRAIN_PATH);
   ctx.fillStyle = 'rgba(96,165,250,0.03)';
   ctx.fill(BRAIN_PATH);
