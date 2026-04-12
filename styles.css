@@ -95,17 +95,24 @@ h1, h2, h3 { font-family: 'Syne', sans-serif; }
   font-family: 'Inter', sans-serif;
 }
 
+/* ── Bento body text ── */
+.bento-card p {
+  color: rgba(255,255,255,0.82);
+  font-weight: 500;
+}
+
 /* ── Checklist ── */
 .check-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
-  color: rgba(255,255,255,0.3);
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
   transition: color 0.4s ease;
   font-family: 'Inter', sans-serif;
 }
-.check-item.done { color: rgba(255,255,255,0.7); }
+.check-item.done { color: rgba(255,255,255,0.95); }
 .check-box {
   width: 18px; height: 18px;
   border: 1.5px solid rgba(255,255,255,0.15);
