@@ -51,7 +51,8 @@ const canvas = document.getElementById('nodeCanvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
-function getBrainPath() {
+// Cache the path and offscreen canvas ONCE — never recreate per frame
+const BRAIN_PATH = (function() {
   const p = new Path2D();
   p.moveTo(110, 18);
   p.bezierCurveTo(70, 10, 30, 20, 22, 50);
@@ -64,13 +65,26 @@ function getBrainPath() {
   p.bezierCurveTo(190, 20, 150, 10, 110, 18);
   p.closePath();
   return p;
-}
+})();
+
+const _offscreen = document.createElement('canvas');
+_offscreen.width = W; _offscreen.height = H;
+const _octx = _offscreen.getContext('2d');
 
 function pointInBrain(x, y) {
-  const offscreen = document.createElement('canvas');
-  offscreen.width = W; offscreen.height = H;
-  return offscreen.getContext('2d').isPointInPath(getBrainPath(), x, y);
+  return _octx.isPointInPath(BRAIN_PATH, x, y);
 }
+
+// Pause animation when canvas is off-screen (IntersectionObserver)
+let _animating = true;
+const _observer = new IntersectionObserver(entries => {
+  _animating = entries[0].isIntersecting;
+  if (_animating) requestAnimationFrame(drawBrain);
+}, { threshold: 0 });
+_observer.observe(canvas);
+
+// GPU compositing hint
+canvas.style.willChange = 'transform';
 
 const nodes = [];
 let attempts = 0;
@@ -87,7 +101,7 @@ function drawBrainOutline() {
   ctx.save();
   ctx.strokeStyle = 'rgba(212,190,84,0.08)';
   ctx.lineWidth = 1.5;
-  ctx.stroke(getBrainPath());
+  ctx.stroke(BRAIN_PATH);
   ctx.beginPath();
   ctx.moveTo(110, 48);
   ctx.bezierCurveTo(106, 70, 106, 90, 110, 112);
@@ -98,11 +112,12 @@ function drawBrainOutline() {
 }
 
 function drawBrain() {
+  if (!_animating) return;
   ctx.clearRect(0, 0, W, H);
   ctx.save();
-  ctx.clip(getBrainPath());
+  ctx.clip(BRAIN_PATH);
   ctx.fillStyle = 'rgba(212,190,84,0.02)';
-  ctx.fill(getBrainPath());
+  ctx.fill(BRAIN_PATH);
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i+1; j < nodes.length; j++) {
       const dx = nodes[i].x-nodes[j].x, dy = nodes[i].y-nodes[j].y;
