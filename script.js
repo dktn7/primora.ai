@@ -29,9 +29,6 @@ function createBenefitsCards() {
 document.addEventListener('DOMContentLoaded', () => {
   createBenefitsCards();
 
-  // AOS: offset:0 so elements animate the moment they enter the viewport (no stale
-  // pre-animation gap). startEvent:'load' ensures positions are calculated after
-  // fonts + images have painted, preventing stale offset measurements.
   AOS.init({
     duration: 900,
     once: true,
@@ -39,13 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startEvent: 'load'
   });
 
-  // Set scroll-margin-top on all anchor targets to exactly the sticky header height.
-  const navHeight = document.querySelector('header').offsetHeight;
-  document.querySelectorAll('section[id], div[id]').forEach(el => {
-    el.style.scrollMarginTop = navHeight + 'px';
-  });
-
-  // Lock h1 height before Typed.js starts (safety net — CSS min-height is primary)
+  // h1 height lock (safety net — CSS min-height is primary)
   const h1 = document.querySelector('h1');
   if (h1) {
     const lineH = parseFloat(getComputedStyle(h1).lineHeight) || 90;
@@ -257,12 +248,18 @@ function playStory() {
 }
 window.addEventListener('load', () => gsap.delayedCall(0.5, playStory));
 
-// ── Smooth scroll — scroll-margin-top handles the offset, no manual arithmetic ──
+// ── Smooth scroll — dynamic: recalculate header height at click time, not page load ──
+// This handles Typed.js headline shifts that change the page layout after load.
 document.addEventListener('click', e => {
   const link = e.target.closest('a[href^="#"]');
   if (!link) return;
   e.preventDefault();
   const target = document.getElementById(link.getAttribute('href').slice(1));
   if (!target) return;
+
+  // Measure the live header height right now and apply it to the target element
+  const navHeight = document.querySelector('header').offsetHeight;
+  target.style.scrollMarginTop = navHeight + 'px';
+
   target.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
