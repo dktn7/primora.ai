@@ -5,11 +5,11 @@ function handleBooking() { window.open(BOOKING_LINK, '_blank'); }
 // ── Benefits data ──
 const benefits = [
   { icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>', text: 'Seamless integration with your existing tools and systems' },
-  { icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>', text: 'Custom automation workflows \u2014 built around your business' },
+  { icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>', text: 'Custom automation workflows — built around your business' },
   { icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>', text: 'Discovery-first: we map your exact needs before building' },
   { icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>', text: 'Real-time data processing and analytics' },
   { icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/><path d="M8 9l-2 3 2 3"/><path d="M16 9l2 3-2 3"/></svg>', text: 'No coding required on your end' },
-  { icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>', text: 'Enterprise-grade security \u2014 UK-based and GDPR compliant' }
+  { icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>', text: 'Enterprise-grade security — UK-based and GDPR compliant' }
 ];
 
 // ── Benefits cards ──
@@ -51,7 +51,6 @@ const canvas = document.getElementById('nodeCanvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
-// Cache the path and offscreen canvas ONCE — never recreate per frame
 const BRAIN_PATH = (function() {
   const p = new Path2D();
   p.moveTo(110, 18);
@@ -75,7 +74,6 @@ function pointInBrain(x, y) {
   return _octx.isPointInPath(BRAIN_PATH, x, y);
 }
 
-// Pause animation when canvas is off-screen (IntersectionObserver)
 let _animating = true;
 const _observer = new IntersectionObserver(entries => {
   _animating = entries[0].isIntersecting;
@@ -83,7 +81,6 @@ const _observer = new IntersectionObserver(entries => {
 }, { threshold: 0 });
 _observer.observe(canvas);
 
-// GPU compositing hint
 canvas.style.willChange = 'transform';
 
 const nodes = [];
@@ -197,3 +194,12 @@ function playStory() {
     .to('#label3',       { opacity: 1, duration: 0.3 });
 }
 window.addEventListener('load', () => gsap.delayedCall(0.5, playStory));
+
+// ── Clean anchor scroll (no # in URL) ──
+document.addEventListener('click', e => {
+  const link = e.target.closest('a[href^="#"]');
+  if (!link) return;
+  e.preventDefault();
+  const target = document.querySelector(link.getAttribute('href'));
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
